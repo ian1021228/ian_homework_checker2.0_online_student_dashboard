@@ -328,10 +328,6 @@
                 </h3>
                 <p class="text-xs text-slate-400 mt-0.5">寫完一項即可勾選一項，養成負責自律的好習慣</p>
               </div>
-              <button id="btn-copy-daily-report" class="touch-target inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs transition-colors cursor-pointer border border-emerald-200">
-                <i class="fa-solid fa-copy"></i>
-                <span>一鍵複製回報文字</span>
-              </button>
             </div>
 
             <!-- Progress Bar -->
@@ -775,7 +771,6 @@
       panelContact: document.getElementById("panel-contact"),
 
       // Homework Tab
-      btnCopyDailyReport: document.getElementById("btn-copy-daily-report"),
       hwProgressText: document.getElementById("hw-progress-text"),
       hwProgressBar: document.getElementById("hw-progress-bar"),
       hwTotalBadge: document.getElementById("hw-total-badge"),
@@ -1785,44 +1780,6 @@
     }
 
     // ==========================================
-    // MODULE 4: COPY DAILY SUMMARY FOR LINE
-    // ==========================================
-
-    function copyDailySummary() {
-      const today = getTodayDateString();
-      const seat = state.studentSeat || "--";
-      const className = state.classData?.className || "班級";
-      const homeworks = state.classData?.homeworks || [];
-      const todayScores = state.scores.filter(s => s.date === today);
-      const mood = state.moodJournal[today] || { mood: "😄 充實", text: "" };
-
-      let selfCount = 0;
-      homeworks.forEach(hw => {
-        if (state.selfChecks[hw.id]) selfCount++;
-      });
-
-      let text = `【${className} ${seat}號 學生聯絡簿自主回報】\n`;
-      text += `📅 日期：${today}\n`;
-      text += `📝 作業檢核：${selfCount}/${homeworks.length} 項已自主完成 (${homeworks.length > 0 ? Math.round(selfCount/homeworks.length*100) : 100}%)\n`;
-      
-      if (todayScores.length > 0) {
-        text += `💯 今日測驗成績：\n`;
-        todayScores.forEach(s => {
-          text += `  • ${s.subject} ${s.name}：${s.score}分 (${s.correction})\n`;
-        });
-      }
-
-      if (mood.text) {
-        text += `💬 今日生活隨筆 [${mood.mood}]：\n  ${mood.text}\n`;
-      }
-
-      const currentUrl = window.location.href;
-      text += `🔗 學生端數位聯絡簿：${currentUrl}\n`;
-
-      safeCopyToClipboard(text, "已成功複製今日聯絡簿回報文字，可直接傳送給家長！");
-    }
-
-    // ==========================================
     // EVENT LISTENERS
     // ==========================================
 
@@ -1895,7 +1852,6 @@
       });
 
       elements.btnSaveMoodJournal.addEventListener("click", saveMoodJournal);
-      elements.btnCopyDailyReport.addEventListener("click", copyDailySummary);
     }
 
     function switchTab(tabName) {
