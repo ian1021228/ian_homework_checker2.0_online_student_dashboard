@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>作業點收系統 — 學生數位聯絡簿與成績登記端</title>
+  <meta name="description" content="作業點收系統學生端數位聯絡簿，讓學生自主填寫成績、檢核作業、記錄心情日記，全面取代實體聯絡簿">
+  <meta property="og:title" content="作業點收系統 — 學生數位聯絡簿與成績登記端">
+  <meta property="og:description" content="作業點收系統學生端數位聯絡簿，讓學生自主填寫成績、檢核作業、記錄心情日記，全面取代實體聯絡簿">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" href="homework-checker-icon.png">
+  <link rel="icon" type="image/svg+xml" href="homework-checker-icon.svg">
+  <link class="rounded-2xl shadow-lg shadow-emerald-500/10" rel="apple-touch-icon" href="homework-checker-icon.png">
+  <meta name="theme-color" content="#059669">
+
+  <!-- Network Preconnect -->
+  <link rel="preconnect" href="https://firestore.googleapis.com">
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome 6.5.1 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '"Noto Sans TC"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              300: '#6ee7b7',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    html {
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    @keyframes livePulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .live-pulse {
+      animation: livePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    .checkbox-bounce:active {
+      transform: scale(0.9);
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col text-slate-800 bg-slate-50 antialiased selection:bg-emerald-100 selection:text-emerald-900">
+
+  <!-- =============================== -->
+  <!-- 1. LOGIN / ACCESS CODE VIEW     -->
+  <!-- =============================== -->
+  <div id="login-view" class="min-h-full flex flex-col justify-center items-center px-4 py-12 sm:px-6 lg:px-8">
+    <div class="w-full max-w-md">
+      <!-- App Header Badge -->
+      <div class="text-center">
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-xl shadow-emerald-500/20 mb-5">
+          <i class="fa-solid fa-graduation-cap text-3xl"></i>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">學生數位聯絡簿</h1>
+        <p class="mt-2 text-sm text-slate-500">輸入班級代碼，自主填寫成績與完成今日作業</p>
+      </div>
+
+      <!-- Access Form Card -->
+      <div class="mt-8 bg-white p-6 sm:p-8 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+        <form id="access-code-form" class="space-y-5" onsubmit="return false;">
+          <div>
+            <label for="input-access-code" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+              班級代碼 (Class Code)
+            </label>
+            <div class="relative rounded-2xl shadow-xs">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                <i class="fa-solid fa-hashtag text-base"></i>
+              </div>
+              <input
+                id="input-access-code"
+                name="accessCode"
+                type="text"
+                required
+                autocomplete="off"
+                placeholder="例如：107 或 701"
+                class="block w-full pl-11 pr-4 py-3.5 text-base font-bold tracking-wider text-slate-900 placeholder:text-slate-400 rounded-2xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all uppercase"
+              >
+            </div>
+            <p class="mt-2 text-xs text-slate-400">
+              * 班級代碼由導師提供，通常為班級名稱或專屬代碼。
+            </p>
+          </div>
+
+          <!-- Error Alert Container -->
+          <div id="login-error-box" class="hidden p-3.5 rounded-2xl bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold flex items-center gap-2.5">
+            <i class="fa-solid fa-circle-exclamation text-rose-500 flex-shrink-0 text-sm"></i>
+            <span id="login-error-msg">找不到此班級權限碼，請確認後重試！</span>
+          </div>
+
+          <button
+            id="login-submit-btn"
+            type="submit"
+            class="touch-target w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl text-sm font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 shadow-lg shadow-emerald-500/25 transition-all focus:outline-hidden cursor-pointer"
+          >
+            <span id="login-btn-text">進入我的數位聯絡簿</span>
+            <i id="login-btn-icon" class="fa-solid fa-arrow-right text-sm"></i>
+          </button>
+        </form>
+
+        <div class="mt-6 pt-5 border-t border-slate-100 text-center space-y-2">
+          <a href="https://ian1021228.github.io/ian_homework_checker2.0_online_parent_dashboard/" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-emerald-600 transition-colors">
+            <i class="fa-solid fa-user-group text-slate-400"></i>
+            <span>切換至家長即時查核看板</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </a>
+          <div>
+            <a href="https://ian1021228.github.io/homework_checker3.0/" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors">
+              <i class="fa-solid fa-chalkboard-user text-slate-400"></i>
+              <span>老師管理系統首頁</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="mt-8 text-center text-xs text-slate-400 space-y-1">
+        <p>作業點收系統 — 學生數位聯絡簿端 v2.0</p>
+        <p>Created by 王禹硯（<a href="mailto:ianw.solar@gmail.com" class="text-emerald-600 hover:underline">ianw.solar@gmail.com</a>）</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================== -->
+  <!-- 2. MAIN STUDENT DASHBOARD VIEW  -->
+  <!-- =============================== -->
+  <div id="dashboard-view" class="hidden min-h-full flex flex-col">
+    <!-- Top Sticky Header -->
+    <header class="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+        <!-- Brand & Class Name -->
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-extrabold text-base shadow-md shadow-emerald-500/20 flex-shrink-0">
+            <i class="fa-solid fa-book-open"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h2 id="header-class-name" class="font-extrabold text-slate-900 text-sm sm:text-base truncate">載入中...</h2>
+              <span id="header-seat-badge" class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 flex-shrink-0">
+                -- 號
+              </span>
+            </div>
+            <div class="flex items-center gap-2 text-[11px] text-slate-400">
+              <span>代碼: <strong id="header-access-code" class="text-slate-600 font-mono">--</strong></span>
+              <span class="inline-block w-1 h-1 rounded-full bg-slate-300"></span>
+              <span class="inline-flex items-center gap-1 text-emerald-600 font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 live-pulse"></span>
+                <span id="sync-status-text">雲端已連線</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <!-- Switch Seat Button -->
+          <button
+            id="nav-seat-btn"
+            type="button"
+            class="touch-target inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+            title="切換座號"
+          >
+            <i class="fa-solid fa-user-tag text-emerald-600"></i>
+            <span id="nav-seat-label" class="hidden sm:inline">選擇座號</span>
+          </button>
+
+          <!-- Settings Button -->
+          <button
+            id="open-settings-btn"
+            type="button"
+            class="touch-target w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-all cursor-pointer"
+            title="設定與班級資訊"
+          >
+            <i class="fa-solid fa-gear text-sm"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Body -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+      <!-- ============================================== -->
+      <!-- SECTION 0: UNBOUND PROMPT (尚未選擇座號提醒)   -->
+      <!-- ============================================== -->
+      <div id="student-unbound-view" class="bg-gradient-to-br from-emerald-50 via-teal-50 to-white rounded-3xl p-6 sm:p-8 border border-emerald-100 shadow-sm text-center">
+        <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center text-2xl mb-4">
+          <i class="fa-solid fa-id-badge"></i>
+        </div>
+        <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">請先選擇您的座號</h3>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-md mx-auto">
+          選擇座號後即可自動載入您的今日作業檢核表、登記小考成績與填寫生活札記。
+        </p>
+
+        <!-- Quick Seat Picker -->
+        <div class="mt-6 max-w-lg mx-auto">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">點擊快速選擇座號：</p>
+          <div id="quick-seat-picker-grid" class="flex flex-wrap justify-center gap-2 max-h-60 overflow-y-auto p-2">
+            <!-- Seat number buttons populated here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- SECTION 1: STUDENT MAIN PORTAL (已選擇座號)   -->
+      <!-- ============================================== -->
+      <div id="student-bound-view" class="space-y-6 hidden">
+
+        <!-- 1.1 Student Profile & Today Summary Banner -->
+        <div class="rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 p-6 sm:p-8 text-white shadow-xl shadow-emerald-600/20 relative overflow-hidden">
+          <!-- Background Deco -->
+          <div class="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
+          
+          <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-3 py-1 rounded-full text-xs font-black bg-white/20 backdrop-blur-md tracking-wider">
+                  <i class="fa-solid fa-star text-amber-300 mr-1"></i>學生自主聯絡簿
+                </span>
+                <span class="text-xs text-emerald-100 font-medium" id="today-date-text">2026/10/01</span>
+              </div>
+              <h2 class="text-2xl sm:text-3xl font-black mt-2">
+                座號 <span id="student-seat-display">--</span> 號同學，你好！
+              </h2>
+              <p class="text-emerald-100 text-xs sm:text-sm mt-1">
+                自主管理今日作業與小考成績，邁向自律優秀的每一天！
+              </p>
+            </div>
+
+            <!-- Fast Stat Badges -->
+            <div class="flex items-center gap-3">
+              <div class="bg-white/15 backdrop-blur-md rounded-2xl px-4 py-3 text-center border border-white/20 min-w-[90px]">
+                <div class="text-xs text-emerald-100 font-semibold">作業完成</div>
+                <div class="text-xl sm:text-2xl font-black mt-0.5" id="stat-hw-progress">0%</div>
+              </div>
+              <div class="bg-white/15 backdrop-blur-md rounded-2xl px-4 py-3 text-center border border-white/20 min-w-[90px]">
+                <div class="text-xs text-emerald-100 font-semibold">今日測驗</div>
+                <div class="text-xl sm:text-2xl font-black mt-0.5" id="stat-test-count">0 筆</div>
+              </div>
+              <div class="bg-white/15 backdrop-blur-md rounded-2xl px-4 py-3 text-center border border-white/20 min-w-[90px]">
+                <div class="text-xs text-emerald-100 font-semibold">今日均分</div>
+                <div class="text-xl sm:text-2xl font-black mt-0.5" id="stat-test-avg">--</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1.2 Module Navigation Tabs -->
+        <div class="flex rounded-2xl bg-slate-200/80 p-1.5 gap-1.5 shadow-inner">
+          <button id="tab-hw-btn" class="flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all bg-white text-emerald-700 shadow-sm flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-list-check"></i>
+            <span>今日作業檢核</span>
+            <span id="tab-hw-count-badge" class="px-2 py-0.5 text-[10px] rounded-full bg-emerald-100 text-emerald-800">0</span>
+          </button>
+          <button id="tab-scores-btn" class="flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-award"></i>
+            <span>小考與成績填寫</span>
+            <span id="tab-scores-count-badge" class="px-2 py-0.5 text-[10px] rounded-full bg-slate-200 text-slate-700">0</span>
+          </button>
+          <button id="tab-contact-btn" class="flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-book"></i>
+            <span>7天聯絡簿與札記</span>
+          </button>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 1: HOMEWORK CHECKLIST (今日作業檢核)       -->
+        <!-- ============================================== -->
+        <div id="panel-homework" class="space-y-5">
+          <!-- Summary Progress Card -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                  <i class="fa-solid fa-clipboard-check text-emerald-600"></i>
+                  <span>今日作業自我檢核</span>
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">寫完一項即可勾選一項，養成負責自律的好習慣</p>
+              </div>
+              <button id="btn-copy-daily-report" class="touch-target inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs transition-colors cursor-pointer border border-emerald-200">
+                <i class="fa-solid fa-copy"></i>
+                <span>一鍵複製回報文字</span>
+              </button>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mt-3">
+              <div class="flex items-center justify-between text-xs font-bold text-slate-600 mb-1.5">
+                <span>自我檢核進度</span>
+                <span id="hw-progress-text">0 / 0 已自主完成 (0%)</span>
+              </div>
+              <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                <div id="hw-progress-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Teacher Homework List -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">今日作業清單</span>
+              <span id="hw-total-badge" class="text-xs font-extrabold text-slate-600">共 0 項</span>
+            </div>
+
+            <div id="student-homework-list" class="space-y-2.5">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 2: SCORE TRACKER (小考成績登記與管理)     -->
+        <!-- ============================================== -->
+        <div id="panel-scores" class="space-y-5 hidden">
+          <!-- Add Score Action Bar -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-award text-amber-500"></i>
+                <span>今日測驗與成績填寫</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">紀錄今日各科小考、聽寫或隨堂練習成績，方便自我檢視與家長查核</p>
+            </div>
+
+            <button
+              id="btn-open-add-score"
+              type="button"
+              class="touch-target inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+            >
+              <i class="fa-solid fa-plus"></i>
+              <span>登記新成績</span>
+            </button>
+          </div>
+
+          <!-- Score Cards Container -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">今日成績紀錄</span>
+                <span id="scores-count-badge" class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-extrabold text-xs">0 筆測驗</span>
+              </div>
+              <div class="text-xs text-slate-500 font-bold" id="scores-avg-display">
+                均分：<span class="text-emerald-600 font-extrabold">--</span>
+              </div>
+            </div>
+
+            <div id="student-scores-list" class="space-y-3">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 3: CONTACT BOOK & MOOD DIARY (7天聯絡簿)  -->
+        <!-- ============================================== -->
+        <div id="panel-contact" class="space-y-5 hidden">
+          <!-- 7-Day Horizontal Date Slider -->
+          <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between mb-3 px-1">
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <i class="fa-regular fa-calendar-days text-emerald-600"></i>
+                <span>過去 7 天聯絡簿快速切換</span>
+              </div>
+              <span id="selected-date-label" class="text-xs font-extrabold text-emerald-700 font-mono">--</span>
+            </div>
+
+            <!-- Date Slider Container -->
+            <div id="contact-date-slider" class="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+
+          <!-- Active Contact Book Content -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">導師聯絡事項</span>
+              <span id="contact-entries-count" class="text-xs font-extrabold text-slate-600">0 則事項</span>
+            </div>
+
+            <div id="contact-book-container" class="space-y-3">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+
+          <!-- Mood Diary / Today's Reflection (今日心情札記) -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-pen-nib text-teal-600"></i>
+                <h3 class="text-sm sm:text-base font-extrabold text-slate-900">今日心情札記 / 生活隨筆</h3>
+              </div>
+              <span class="text-xs text-slate-400">取代實體聯絡簿心情欄</span>
+            </div>
+
+            <!-- Mood Selector -->
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-2">今天的心情狀態：</label>
+              <div id="mood-picker-group" class="grid grid-cols-5 gap-2 max-w-md">
+                <button type="button" data-mood="😄 充實愉快" class="mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-center hover:bg-emerald-50 hover:border-emerald-300 transition-all cursor-pointer text-xs font-bold">
+                  <span class="text-xl block mb-1">😄</span>充實
+                </button>
+                <button type="button" data-mood="🎉 開心收穫" class="mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-center hover:bg-emerald-50 hover:border-emerald-300 transition-all cursor-pointer text-xs font-bold">
+                  <span class="text-xl block mb-1">🎉</span>開心
+                </button>
+                <button type="button" data-mood="🤔 努力思考" class="mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-center hover:bg-emerald-50 hover:border-emerald-300 transition-all cursor-pointer text-xs font-bold">
+                  <span class="text-xl block mb-1">🤔</span>思考
+                </button>
+                <button type="button" data-mood="😴 有點疲憊" class="mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-center hover:bg-emerald-50 hover:border-emerald-300 transition-all cursor-pointer text-xs font-bold">
+                  <span class="text-xl block mb-1">😴</span>疲憊
+                </button>
+                <button type="button" data-mood="💪 衝勁十足" class="mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-center hover:bg-emerald-50 hover:border-emerald-300 transition-all cursor-pointer text-xs font-bold">
+                  <span class="text-xl block mb-1">💪</span>奮鬥
+                </button>
+              </div>
+            </div>
+
+            <!-- Mood Journal Text Area -->
+            <div>
+              <label for="mood-journal-textarea" class="block text-xs font-bold text-slate-500 mb-2">今日生活心得隨筆（給老師與爸媽的一句話）：</label>
+              <textarea
+                id="mood-journal-textarea"
+                rows="3"
+                placeholder="寫下今天最開心的事、新學會的觀念，或是想和老師分享的心情..."
+                class="w-full p-3.5 text-sm text-slate-800 bg-slate-50 rounded-2xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              ></textarea>
+            </div>
+
+            <div class="flex justify-end">
+              <button id="btn-save-mood-journal" type="button" class="touch-target inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 transition-all cursor-pointer">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>儲存今日心情札記</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- Bottom Sticky Navigation Bar -->
+    <footer class="mt-auto bg-white border-t border-slate-200/80 py-4 px-4 text-center">
+      <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+        <div>
+          <span>作業點收系統 — 學生數位聯絡簿端 v2.0</span>
+          <span class="mx-2 text-slate-300">|</span>
+          <a href="https://ian1021228.github.io/ian_homework_checker2.0_online_parent_dashboard/" class="text-emerald-600 hover:underline font-bold">前往家長即時查核端</a>
+          <span class="mx-2 text-slate-300">|</span>
+          <a href="https://ian1021228.github.io/homework_checker3.0/" class="text-slate-600 hover:underline font-semibold">首頁</a>
+        </div>
+        <div class="font-medium text-slate-400">
+          Created by 王禹硯（<a href="mailto:ianw.solar@gmail.com" class="text-emerald-600 hover:underline">ianw.solar@gmail.com</a>）
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 1: ADD / EDIT SCORE MODAL (登記成績彈窗)                 -->
+  <!-- ============================================================== -->
+  <div id="score-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs hidden transition-opacity">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all flex flex-col max-h-[92vh]">
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-slate-50/50">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-award"></i>
+          </div>
+          <div>
+            <h3 id="score-modal-title" class="text-base font-extrabold text-slate-900">登記小考／作業成績</h3>
+            <p class="text-xs text-slate-500">紀錄於個人聯絡簿與雲端備份</p>
+          </div>
+        </div>
+        <button id="close-score-modal-btn" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Body Form -->
+      <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4">
+        <input type="hidden" id="edit-score-id" value="">
+
+        <!-- Subject Selection -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">考試科目</label>
+          <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-2" id="subject-picker-group">
+            <button type="button" data-sub="國語" class="sub-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer">國語</button>
+            <button type="button" data-sub="數學" class="sub-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer">數學</button>
+            <button type="button" data-sub="英語" class="sub-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer">英語</button>
+            <button type="button" data-sub="自然" class="sub-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer">自然</button>
+            <button type="button" data-sub="社會" class="sub-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer">社會</button>
+            <button type="button" data-sub="其他" class="sub-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer">其他</button>
+          </div>
+          <input
+            id="input-score-subject"
+            type="text"
+            placeholder="或自訂科目名稱"
+            class="w-full px-3.5 py-2.5 text-sm font-bold text-slate-800 bg-slate-50 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          >
+        </div>
+
+        <!-- Exam Name -->
+        <div>
+          <label for="input-score-name" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">測驗名稱 / 單元範圍</label>
+          <input
+            id="input-score-name"
+            type="text"
+            required
+            placeholder="例如：第一課聽寫、第3單元平時考、隨堂卷"
+            class="w-full px-3.5 py-2.5 text-sm font-bold text-slate-800 bg-slate-50 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          >
+        </div>
+
+        <!-- Score Input & Quick Preset -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="input-score-val" class="block text-xs font-bold uppercase tracking-wider text-slate-500">獲得分數 (0~100)</label>
+            <span class="text-xs text-slate-400 font-semibold">快速選分：</span>
+          </div>
+          <div class="flex gap-1.5 mb-2">
+            <button type="button" onclick="document.getElementById('input-score-val').value=100" class="flex-1 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 text-xs font-bold">100</button>
+            <button type="button" onclick="document.getElementById('input-score-val').value=95" class="flex-1 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 text-xs font-bold">95</button>
+            <button type="button" onclick="document.getElementById('input-score-val').value=90" class="flex-1 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 text-xs font-bold">90</button>
+            <button type="button" onclick="document.getElementById('input-score-val').value=85" class="flex-1 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 text-xs font-bold">85</button>
+            <button type="button" onclick="document.getElementById('input-score-val').value=80" class="flex-1 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 text-xs font-bold">80</button>
+          </div>
+          <input
+            id="input-score-val"
+            type="number"
+            min="0"
+            max="100"
+            required
+            placeholder="請輸入分數"
+            class="w-full px-3.5 py-3 text-lg font-black text-slate-900 bg-slate-50 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          >
+        </div>
+
+        <!-- Correction Status -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">訂正狀況</label>
+          <div class="grid grid-cols-3 gap-2" id="correction-picker-group">
+            <button type="button" data-cor="全對免訂正" class="cor-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 transition-all cursor-pointer">✨ 全對免訂正</button>
+            <button type="button" data-cor="已完成訂正" class="cor-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 transition-all cursor-pointer">✅ 已完成訂正</button>
+            <button type="button" data-cor="待訂正/需請教" class="cor-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 transition-all cursor-pointer">✏️ 待訂正/需請教</button>
+          </div>
+        </div>
+
+        <!-- Remarks -->
+        <div>
+          <label for="input-score-remark" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">備註 / 錯題檢討心得（選填）</label>
+          <input
+            id="input-score-remark"
+            type="text"
+            placeholder="例如：粗心看錯題目、第4題問老師後懂了"
+            class="w-full px-3.5 py-2.5 text-xs text-slate-800 bg-slate-50 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          >
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50 flex-shrink-0">
+        <button id="cancel-score-modal-btn" type="button" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 text-xs font-bold cursor-pointer">
+          取消
+        </button>
+        <button id="save-score-modal-btn" type="button" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 cursor-pointer">
+          儲存成績紀錄
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 2: SETTINGS & SWITCH SEAT MODAL                          -->
+  <!-- ============================================================== -->
+  <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs hidden transition-opacity">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-emerald-600"></i>
+          <span>設定與座號切換</span>
+        </h3>
+        <button id="close-settings-modal-btn" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
+        <!-- Class Info -->
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500">目前班級</span>
+            <span id="modal-class-name" class="text-sm font-extrabold text-slate-900">--</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500">班級代碼</span>
+            <span id="modal-access-code-badge" class="px-2 py-0.5 rounded-md font-mono text-xs font-bold bg-slate-200 text-slate-700">--</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500">班導師</span>
+            <span id="modal-teacher-name" class="text-xs font-bold text-slate-700">--</span>
+          </div>
+        </div>
+
+        <!-- Seat Selector -->
+        <div>
+          <label for="modal-seat-select" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">切換我的座號</label>
+          <select id="modal-seat-select" class="block w-full py-3 px-3.5 text-sm font-bold text-slate-800 bg-slate-50 rounded-2xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500">
+            <option value="">-- 請選擇座號 --</option>
+          </select>
+        </div>
+
+        <!-- Direct Links -->
+        <div class="pt-3 border-t border-slate-100 space-y-2">
+          <a href="https://ian1021228.github.io/ian_homework_checker2.0_online_parent_dashboard/" class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 font-bold text-xs transition-colors">
+            <span class="flex items-center gap-2">
+              <i class="fa-solid fa-users text-emerald-600"></i>
+              <span>前往家長端即時查核看板</span>
+            </span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          </a>
+          <button id="switch-class-modal-btn" type="button" class="w-full flex items-center justify-center gap-2 p-3 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors cursor-pointer">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>退出目前班級（更換班級代碼）</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-6 py-3 border-t border-slate-100 flex justify-end gap-2 bg-slate-50/50 flex-shrink-0">
+        <button id="save-settings-btn" type="button" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 cursor-pointer">
+          確認儲存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ============================================================== -->
+  <!-- JAVASCRIPT MODULE (Firebase Firestore & Reactive Student App)   -->
+  <!-- ============================================================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // 1. Firebase Configuration (Shared with homework_checker3.0 & parent dashboard)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDuBAZ5hEcrhpYt-XjhiXfi-wuow0Cq83A",
+      authDomain: "cheker-barcode.firebaseapp.com",
+      projectId: "cheker-barcode",
+      storageBucket: "cheker-barcode.firebasestorage.app",
+      messagingSenderId: "1093592859159",
+      appId: "1:1093592859159:web:40c0741defbb074e4ad252"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const APP_COLLECTION_ID = "homework-checker-pro";
+
+    // Local Storage Keys
+    const LS_ACCESS_CODE_KEY = "student_access_code";
+    const LS_STUDENT_SEAT_KEY = "student_seat_number";
+    const LS_CLASS_CACHE_PREFIX = "student_class_cache_";
+    const LS_STUDENT_SCORES_KEY = "student_scores_records";
+    const LS_STUDENT_HW_CHECK_KEY = "student_hw_self_checks";
+    const LS_STUDENT_MOOD_KEY = "student_mood_journal";
+
+    // App Global State
+    const state = {
+      accessCode: "",
+      studentSeat: null,
+      classData: null,
+      selectedContactDate: getTodayDateString(),
+      activeTab: "hw", // "hw" | "scores" | "contact"
+      unsubscribeSnapshot: null,
+      selfChecks: {}, // { [hwId]: boolean }
+      scores: [], // [ { id, date, subject, name, score, correction, remark } ]
+      moodJournal: {} // { [date]: { mood, text } }
+    };
+
+    // DOM Elements Cache
+    const elements = {
+      // Views
+      loginView: document.getElementById("login-view"),
+      dashboardView: document.getElementById("dashboard-view"),
+      accessCodeForm: document.getElementById("access-code-form"),
+      inputAccessCode: document.getElementById("input-access-code"),
+      loginSubmitBtn: document.getElementById("login-submit-btn"),
+      loginBtnText: document.getElementById("login-btn-text"),
+      loginBtnIcon: document.getElementById("login-btn-icon"),
+      loginErrorBox: document.getElementById("login-error-box"),
+      loginErrorMsg: document.getElementById("login-error-msg"),
+
+      // Header
+      headerClassName: document.getElementById("header-class-name"),
+      headerSeatBadge: document.getElementById("header-seat-badge"),
+      headerAccessCode: document.getElementById("header-access-code"),
+      syncStatusText: document.getElementById("sync-status-text"),
+      navSeatBtn: document.getElementById("nav-seat-btn"),
+      navSeatLabel: document.getElementById("nav-seat-label"),
+      openSettingsBtn: document.getElementById("open-settings-btn"),
+
+      // Student Section
+      studentUnboundView: document.getElementById("student-unbound-view"),
+      studentBoundView: document.getElementById("student-bound-view"),
+      quickSeatPickerGrid: document.getElementById("quick-seat-picker-grid"),
+      studentSeatDisplay: document.getElementById("student-seat-display"),
+      todayDateText: document.getElementById("today-date-text"),
+      statHwProgress: document.getElementById("stat-hw-progress"),
+      statTestCount: document.getElementById("stat-test-count"),
+      statTestAvg: document.getElementById("stat-test-avg"),
+
+      // Tabs
+      tabHwBtn: document.getElementById("tab-hw-btn"),
+      tabScoresBtn: document.getElementById("tab-scores-btn"),
+      tabContactBtn: document.getElementById("tab-contact-btn"),
+      tabHwCountBadge: document.getElementById("tab-hw-count-badge"),
+      tabScoresCountBadge: document.getElementById("tab-scores-count-badge"),
+      panelHomework: document.getElementById("panel-homework"),
+      panelScores: document.getElementById("panel-scores"),
+      panelContact: document.getElementById("panel-contact"),
+
+      // Homework Tab
+      btnCopyDailyReport: document.getElementById("btn-copy-daily-report"),
+      hwProgressText: document.getElementById("hw-progress-text"),
+      hwProgressBar: document.getElementById("hw-progress-bar"),
+      hwTotalBadge: document.getElementById("hw-total-badge"),
+      studentHomeworkList: document.getElementById("student-homework-list"),
+
+      // Scores Tab
+      btnOpenAddScore: document.getElementById("btn-open-add-score"),
+      scoresCountBadge: document.getElementById("scores-count-badge"),
+      scoresAvgDisplay: document.getElementById("scores-avg-display"),
+      studentScoresList: document.getElementById("student-scores-list"),
+
+      // Contact Tab
+      selectedDateLabel: document.getElementById("selected-date-label"),
+      contactDateSlider: document.getElementById("contact-date-slider"),
+      contactEntriesCount: document.getElementById("contact-entries-count"),
+      contactBookContainer: document.getElementById("contact-book-container"),
+      moodPickerGroup: document.getElementById("mood-picker-group"),
+      moodJournalTextarea: document.getElementById("mood-journal-textarea"),
+      btnSaveMoodJournal: document.getElementById("btn-save-mood-journal"),
+
+      // Score Modal
+      scoreModal: document.getElementById("score-modal"),
+      scoreModalTitle: document.getElementById("score-modal-title"),
+      closeScoreModalBtn: document.getElementById("close-score-modal-btn"),
+      cancelScoreModalBtn: document.getElementById("cancel-score-modal-btn"),
+      saveScoreModalBtn: document.getElementById("save-score-modal-btn"),
+      editScoreId: document.getElementById("edit-score-id"),
+      inputScoreSubject: document.getElementById("input-score-subject"),
+      inputScoreName: document.getElementById("input-score-name"),
+      inputScoreVal: document.getElementById("input-score-val"),
+      inputScoreRemark: document.getElementById("input-score-remark"),
+      subjectPickerGroup: document.getElementById("subject-picker-group"),
+      correctionPickerGroup: document.getElementById("correction-picker-group"),
+
+      // Settings Modal
+      settingsModal: document.getElementById("settings-modal"),
+      closeSettingsModalBtn: document.getElementById("close-settings-modal-btn"),
+      modalClassName: document.getElementById("modal-class-name"),
+      modalAccessCodeBadge: document.getElementById("modal-access-code-badge"),
+      modalTeacherName: document.getElementById("modal-teacher-name"),
+      modalSeatSelect: document.getElementById("modal-seat-select"),
+      switchClassModalBtn: document.getElementById("switch-class-modal-btn"),
+      saveSettingsBtn: document.getElementById("save-settings-btn"),
+
+      toastContainer: document.getElementById("toast-container")
+    };
+
+    // Selected state for modals
+    let selectedModalCorrection = "全對免訂正";
+    let selectedMood = "😄 充實愉快";
+
+    // ==========================================
+    // UTILITY FUNCTIONS
+    // ==========================================
+
+    function getTodayDateString() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function parseMissingSeats(missingStr) {
+      if (!missingStr) return new Set();
+      const parts = String(missingStr).split(/[,，、\s]+/);
+      const set = new Set();
+      parts.forEach(p => {
+        const item = p.trim();
+        if (!item) return;
+        const rangeMatch = item.match(/^(\d+)[-~–—](\d+)$/);
+        if (rangeMatch) {
+          const start = parseInt(rangeMatch[1], 10);
+          const end = parseInt(rangeMatch[2], 10);
+          const min = Math.min(start, end);
+          const max = Math.max(start, end);
+          for (let i = min; i <= max; i++) set.add(i);
+        } else {
+          const n = parseInt(item, 10);
+          if (!isNaN(n)) set.add(n);
+        }
+      });
+      return set;
+    }
+
+    function getDayOfWeekName(dateObj) {
+      const days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+      return days[dateObj.getDay()];
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      const bgColors = {
+        success: 'bg-emerald-600 text-white',
+        error: 'bg-rose-600 text-white',
+        info: 'bg-slate-800 text-white'
+      };
+      const icons = {
+        success: 'fa-circle-check',
+        error: 'fa-circle-exclamation',
+        info: 'fa-circle-info'
+      };
+      
+      toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl ${bgColors[type] || bgColors.info} text-sm font-semibold transition-all duration-300 transform translate-y-2 opacity-0`;
+      toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i> <span>${escapeHtml(message)}</span>`;
+      
+      elements.toastContainer.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    function safeCopyToClipboard(text, successMsg = "已成功複製到剪貼簿！") {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast(successMsg, "success");
+        }).catch(() => fallbackCopy(text, successMsg));
+      } else {
+        fallbackCopy(text, successMsg);
+      }
+    }
+
+    function fallbackCopy(text, successMsg) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast(successMsg, "success");
+      } catch (err) {
+        showToast("複製失敗，請手動複製", "error");
+      }
+      document.body.removeChild(textArea);
+    }
+
+    // ==========================================
+    // INITIALIZATION & LOGIN
+    // ==========================================
+
+    function init() {
+      // 1. Load Local State
+      loadLocalState();
+
+      // Set today's date banner
+      elements.todayDateText.textContent = getTodayDateString();
+
+      // 2. Check URL parameters ?code=XXXX&seat=YY
+      const urlParams = new URLSearchParams(window.location.search);
+      const codeFromUrl = urlParams.get("code");
+      const seatFromUrl = urlParams.get("seat");
+
+      if (seatFromUrl) {
+        const parsedSeat = parseInt(seatFromUrl, 10);
+        if (!isNaN(parsedSeat) && parsedSeat > 0) {
+          state.studentSeat = parsedSeat;
+          localStorage.setItem(LS_STUDENT_SEAT_KEY, parsedSeat.toString());
+        }
+      }
+
+      if (codeFromUrl) {
+        const clean = codeFromUrl.trim().toUpperCase();
+        elements.inputAccessCode.value = clean;
+        connectToClass(clean);
+      } else if (state.accessCode) {
+        elements.inputAccessCode.value = state.accessCode;
+        connectToClass(state.accessCode);
+      } else {
+        showLoginView();
+      }
+
+      setupEventListeners();
+    }
+
+    function loadLocalState() {
+      try {
+        state.accessCode = localStorage.getItem(LS_ACCESS_CODE_KEY) || "";
+        const savedSeat = localStorage.getItem(LS_STUDENT_SEAT_KEY);
+        if (savedSeat) state.studentSeat = parseInt(savedSeat, 10);
+
+        const savedChecks = localStorage.getItem(LS_STUDENT_HW_CHECK_KEY);
+        if (savedChecks) state.selfChecks = JSON.parse(savedChecks);
+
+        const savedScores = localStorage.getItem(LS_STUDENT_SCORES_KEY);
+        if (savedScores) state.scores = JSON.parse(savedScores);
+
+        const savedMood = localStorage.getItem(LS_STUDENT_MOOD_KEY);
+        if (savedMood) state.moodJournal = JSON.parse(savedMood);
+      } catch (e) {
+        console.warn("Error loading local state:", e);
+      }
+    }
+
+    function saveLocalState() {
+      try {
+        if (state.accessCode) localStorage.setItem(LS_ACCESS_CODE_KEY, state.accessCode);
+        if (state.studentSeat) localStorage.setItem(LS_STUDENT_SEAT_KEY, state.studentSeat.toString());
+        localStorage.setItem(LS_STUDENT_HW_CHECK_KEY, JSON.stringify(state.selfChecks));
+        localStorage.setItem(LS_STUDENT_SCORES_KEY, JSON.stringify(state.scores));
+        localStorage.setItem(LS_STUDENT_MOOD_KEY, JSON.stringify(state.moodJournal));
+      } catch (e) {
+        console.warn("Error saving local state:", e);
+      }
+    }
+
+    function showLoginView() {
+      elements.loginView.classList.remove("hidden");
+      elements.dashboardView.classList.add("hidden");
+      elements.loginErrorBox.classList.add("hidden");
+      elements.inputAccessCode.focus();
+    }
+
+    function showDashboardView() {
+      elements.loginView.classList.add("hidden");
+      elements.dashboardView.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setLoginLoading(loading) {
+      elements.loginSubmitBtn.disabled = loading;
+      if (loading) {
+        elements.loginBtnText.textContent = "驗證班級代碼中...";
+        elements.loginBtnIcon.className = "fa-solid fa-spinner fa-spin text-sm";
+      } else {
+        elements.loginBtnText.textContent = "進入我的數位聯絡簿";
+        elements.loginBtnIcon.className = "fa-solid fa-arrow-right text-sm";
+      }
+    }
+
+    // ==========================================
+    // FIRESTORE CONNECTION & SYNC
+    // ==========================================
+
+    function decodeRestValue(val) {
+      if (!val || typeof val !== 'object') return val;
+      if ('stringValue' in val) return val.stringValue;
+      if ('integerValue' in val) return parseInt(val.integerValue, 10);
+      if ('doubleValue' in val) return parseFloat(val.doubleValue);
+      if ('booleanValue' in val) return val.booleanValue;
+      if ('timestampValue' in val) return val.timestampValue;
+      if ('arrayValue' in val) return (val.arrayValue.values || []).map(decodeRestValue);
+      if ('mapValue' in val) {
+        const map = {};
+        for (const [k, v] of Object.entries(val.mapValue.fields || {})) {
+          map[k] = decodeRestValue(v);
+        }
+        return map;
+      }
+      return val;
+    }
+
+    function parseClassData(rawData) {
+      if (!rawData) return null;
+      let finalData = { ...rawData };
+      if (rawData.data && typeof rawData.data === 'string') {
+        try {
+          const parsed = JSON.parse(rawData.data);
+          finalData = { ...parsed, ...finalData };
+        } catch(e) {}
+      }
+      return finalData;
+    }
+
+    function parseRestDocument(docJson) {
+      if (!docJson || !docJson.fields) return null;
+      const decoded = {};
+      for (const [k, v] of Object.entries(docJson.fields)) {
+        decoded[k] = decodeRestValue(v);
+      }
+      return parseClassData(decoded);
+    }
+
+    function connectToClass(accessCode) {
+      const cleanCode = accessCode.trim().toUpperCase();
+      if (!cleanCode) {
+        elements.loginErrorBox.classList.remove("hidden");
+        elements.loginErrorMsg.textContent = "請輸入有效的班級代碼！";
+        return;
+      }
+
+      setLoginLoading(true);
+      elements.loginErrorBox.classList.add("hidden");
+
+      // 1. Fast local cache check
+      try {
+        const cachedRaw = localStorage.getItem(LS_CLASS_CACHE_PREFIX + cleanCode);
+        if (cachedRaw) {
+          const cachedData = JSON.parse(cachedRaw);
+          if (cachedData && cachedData.className) {
+            state.accessCode = cleanCode;
+            state.classData = cachedData;
+            showDashboardView();
+            renderStudentDashboard(cachedData);
+          }
+        }
+      } catch (cacheErr) {}
+
+      // Cleanup existing listener
+      if (state.unsubscribeSnapshot) {
+        state.unsubscribeSnapshot();
+        state.unsubscribeSnapshot = null;
+      }
+
+      // 2. Direct fast REST query
+      let resolvedByFastRest = false;
+      const fetchDirectData = async () => {
+        try {
+          const url = `https://firestore.googleapis.com/v1/projects/cheker-barcode/databases/(default)/documents/artifacts/${APP_COLLECTION_ID}/public/data/parentClasses/${cleanCode}`;
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 3500);
+          const resp = await fetch(url, { signal: controller.signal });
+          clearTimeout(timer);
+          if (resp.status === 200) {
+            const json = await resp.json();
+            const directData = parseRestDocument(json);
+            if (directData && directData.className && !resolvedByFastRest) {
+              resolvedByFastRest = true;
+              setLoginLoading(false);
+              state.accessCode = cleanCode;
+              state.classData = directData;
+              localStorage.setItem(LS_ACCESS_CODE_KEY, cleanCode);
+              try {
+                localStorage.setItem(LS_CLASS_CACHE_PREFIX + cleanCode, JSON.stringify(directData));
+              } catch (e) {}
+
+              // Update URL
+              const currentUrl = new URL(window.location);
+              currentUrl.searchParams.set("code", cleanCode);
+              if (state.studentSeat) currentUrl.searchParams.set("seat", state.studentSeat);
+              window.history.replaceState({}, "", currentUrl);
+
+              showDashboardView();
+              renderStudentDashboard(directData);
+            }
+          } else if (resp.status === 404) {
+            if (!state.classData && !resolvedByFastRest) {
+              setLoginLoading(false);
+              showLoginView();
+              elements.loginErrorBox.classList.remove("hidden");
+              elements.loginErrorMsg.textContent = "找不到此班級權限碼（" + cleanCode + "），請確認後重新輸入！";
+              localStorage.removeItem(LS_ACCESS_CODE_KEY);
+            }
+          }
+        } catch (e) {}
+      };
+
+      fetchDirectData();
+
+      // 3. onSnapshot for live updates
+      const classDocRef = doc(db, 'artifacts', APP_COLLECTION_ID, 'public', 'data', 'parentClasses', cleanCode);
+      state.unsubscribeSnapshot = onSnapshot(classDocRef, (docSnap) => {
+        setLoginLoading(false);
+        if (docSnap.exists()) {
+          resolvedByFastRest = true;
+          const raw = docSnap.data();
+          const data = parseClassData(raw);
+          state.accessCode = cleanCode;
+          state.classData = data;
+          
+          localStorage.setItem(LS_ACCESS_CODE_KEY, cleanCode);
+          try {
+            localStorage.setItem(LS_CLASS_CACHE_PREFIX + cleanCode, JSON.stringify(data));
+          } catch (e) {}
+
+          const currentUrl = new URL(window.location);
+          currentUrl.searchParams.set("code", cleanCode);
+          if (state.studentSeat) currentUrl.searchParams.set("seat", state.studentSeat);
+          window.history.replaceState({}, "", currentUrl);
+
+          showDashboardView();
+          renderStudentDashboard(data);
+          syncScoresFromCloud();
+        }
+      }, (err) => {
+        setLoginLoading(false);
+        console.error("Firestore sync error:", err);
+      });
+    }
+
+    // Sync student scores with Firestore userProfiles collection
+    async function syncScoresToCloud() {
+      if (!state.accessCode || !state.studentSeat) return;
+      try {
+        const studentDocId = `studentScores_${state.accessCode}_seat${state.studentSeat}`;
+        const profileDocRef = doc(db, 'artifacts', APP_COLLECTION_ID, 'public', 'data', 'userProfiles', studentDocId);
+        await setDoc(profileDocRef, {
+          classCode: state.accessCode,
+          seat: state.studentSeat,
+          scores: state.scores,
+          moodJournal: state.moodJournal,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      } catch (err) {
+        console.warn("Cloud scores sync warning:", err);
+      }
+    }
+
+    async function syncScoresFromCloud() {
+      if (!state.accessCode || !state.studentSeat) return;
+      try {
+        const studentDocId = `studentScores_${state.accessCode}_seat${state.studentSeat}`;
+        const url = `https://firestore.googleapis.com/v1/projects/cheker-barcode/databases/(default)/documents/artifacts/${APP_COLLECTION_ID}/public/data/userProfiles/${studentDocId}`;
+        const resp = await fetch(url);
+        if (resp.status === 200) {
+          const json = await resp.json();
+          const cloudData = parseRestDocument(json);
+          if (cloudData && Array.isArray(cloudData.scores)) {
+            // Merge cloud scores with local
+            const existingIds = new Set(state.scores.map(s => s.id));
+            cloudData.scores.forEach(cs => {
+              if (!existingIds.has(cs.id)) {
+                state.scores.push(cs);
+              }
+            });
+            if (cloudData.moodJournal) {
+              state.moodJournal = { ...cloudData.moodJournal, ...state.moodJournal };
+            }
+            saveLocalState();
+            renderScoresSection();
+            renderMoodJournalSection();
+          }
+        }
+      } catch (e) {}
+    }
+
+    // ==========================================
+    // RENDER STUDENT DASHBOARD
+    // ==========================================
+
+    function renderStudentDashboard(data) {
+      if (!data) return;
+
+      // 1. Header
+      elements.headerClassName.textContent = data.className || "未命名班級";
+      elements.headerAccessCode.textContent = data.accessCode || state.accessCode;
+      elements.modalClassName.textContent = data.className || "未命名班級";
+      elements.modalAccessCodeBadge.textContent = data.accessCode || state.accessCode;
+      elements.modalTeacherName.textContent = `導師：${data.teacherName || "未指定"}`;
+
+      // Populate Seat Selectors
+      populateSeatSelectors(data);
+
+      // Check Seat Binding
+      if (!state.studentSeat) {
+        elements.studentUnboundView.classList.remove("hidden");
+        elements.studentBoundView.classList.add("hidden");
+        elements.headerSeatBadge.textContent = "未選擇座號";
+        elements.navSeatLabel.textContent = "選擇座號";
+        return;
+      }
+
+      elements.studentUnboundView.classList.add("hidden");
+      elements.studentBoundView.classList.remove("hidden");
+      elements.studentSeatDisplay.textContent = `${state.studentSeat}`;
+      elements.headerSeatBadge.textContent = `${state.studentSeat} 號`;
+      elements.navSeatLabel.textContent = `${state.studentSeat} 號`;
+
+      // 2. Render Homework Section
+      renderHomeworkSection(data);
+
+      // 3. Render Scores Section
+      renderScoresSection();
+
+      // 4. Render Contact Book Section
+      renderContactBookSection(data);
+
+      // 5. Render Mood Journal
+      renderMoodJournalSection();
+    }
+
+    function populateSeatSelectors(data) {
+      const maxSeat = data.lastMaxSeat || 35;
+      const missingSeats = parseMissingSeats(data.lastMissingSeats);
+
+      elements.modalSeatSelect.innerHTML = '<option value="">-- 請選擇座號 --</option>';
+      elements.quickSeatPickerGrid.innerHTML = '';
+
+      for (let i = 1; i <= maxSeat; i++) {
+        if (missingSeats.has(i)) continue;
+
+        // Modal Option
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `${i} 號`;
+        if (state.studentSeat === i) opt.selected = true;
+        elements.modalSeatSelect.appendChild(opt);
+
+        // Quick Button
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `touch-target w-11 h-11 rounded-2xl font-bold text-sm flex items-center justify-center transition-all border shadow-xs active:scale-95 ${
+          state.studentSeat === i
+            ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/30'
+            : 'bg-white hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 border-slate-200'
+        }`;
+        btn.textContent = `${i}`;
+        btn.title = `設定為 ${i} 號`;
+        btn.addEventListener('click', () => {
+          setStudentSeat(i);
+        });
+        elements.quickSeatPickerGrid.appendChild(btn);
+      }
+    }
+
+    function setStudentSeat(seatNumber) {
+      state.studentSeat = seatNumber ? parseInt(seatNumber, 10) : null;
+      if (state.studentSeat) {
+        localStorage.setItem(LS_STUDENT_SEAT_KEY, state.studentSeat.toString());
+        showToast(`已設定為 ${state.studentSeat} 號同學`, "success");
+        const currentUrl = new URL(window.location);
+        currentUrl.searchParams.set("seat", state.studentSeat);
+        window.history.replaceState({}, "", currentUrl);
+      } else {
+        localStorage.removeItem(LS_STUDENT_SEAT_KEY);
+        showToast("已清除座號設定", "info");
+      }
+
+      if (state.classData) {
+        renderStudentDashboard(state.classData);
+      }
+    }
+
+    // ==========================================
+    // MODULE 1: HOMEWORK CHECKLIST
+    // ==========================================
+
+    function getStatusMeta(homeworkTypeId, statusKey, classData) {
+      const fallback = {
+        key: statusKey,
+        text: statusKey === 'submitted' ? '已繳交' : (statusKey === 'needs-correction' ? '待訂正' : '未繳交'),
+        isCompleted: statusKey === 'submitted',
+        isCorrection: statusKey === 'needs-correction'
+      };
+
+      if (!classData || !classData.homeworkTypes) return fallback;
+      const type = classData.homeworkTypes.find(t => t.id === homeworkTypeId);
+      if (!type || !type.statuses) return fallback;
+
+      const found = type.statuses.find(s => s.key === statusKey);
+      if (!found) return fallback;
+
+      const isCorrection = (found.key === 'needs-correction' || found.text.includes('訂正'));
+      return {
+        ...found,
+        isCompleted: found.isCompleted || found.key === 'submitted',
+        isCorrection: isCorrection
+      };
+    }
+
+    function renderHomeworkSection(data) {
+      const seat = state.studentSeat;
+      const homeworks = data.homeworks || [];
+
+      let selfCheckedCount = 0;
+      elements.tabHwCountBadge.textContent = `${homeworks.length}`;
+      elements.hwTotalBadge.textContent = `共 ${homeworks.length} 項`;
+
+      if (homeworks.length === 0) {
+        elements.studentHomeworkList.innerHTML = `
+          <div class="text-center py-10 text-slate-400 text-sm">
+            <i class="fa-regular fa-folder-open text-3xl mb-2 block text-slate-300"></i>
+            今日導師尚未登記作業
+          </div>
+        `;
+        elements.hwProgressText.textContent = `0 / 0 已自主完成 (0%)`;
+        elements.hwProgressBar.style.width = `0%`;
+        elements.statHwProgress.textContent = `0%`;
+        return;
+      }
+
+      const listHtml = homeworks.map(hw => {
+        const studentRecord = (hw.students || []).find(s => s.seat === seat);
+        const statusKey = studentRecord ? studentRecord.status : 'not-submitted';
+        const meta = getStatusMeta(hw.typeId, statusKey, data);
+        const isSelfChecked = Boolean(state.selfChecks[hw.id]);
+
+        if (isSelfChecked) selfCheckedCount++;
+
+        // Status pill for teacher's check
+        let teacherPill = "";
+        if (meta.isCompleted) {
+          teacherPill = `<span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"><i class="fa-solid fa-check mr-1"></i>老師已收件</span>`;
+        } else if (meta.isCorrection) {
+          teacherPill = `<span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200"><i class="fa-solid fa-circle-exclamation mr-1"></i>需訂正</span>`;
+        } else {
+          teacherPill = `<span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200"><i class="fa-solid fa-xmark mr-1"></i>待繳交</span>`;
+        }
+
+        const typeObj = (data.homeworkTypes || []).find(t => t.id === hw.typeId);
+        const typeName = typeObj ? typeObj.name : "作業";
+
+        return `
+          <div class="hw-item-card flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border transition-all ${
+            isSelfChecked
+              ? 'bg-emerald-50/70 border-emerald-200 shadow-xs'
+              : 'bg-white hover:bg-slate-50 border-slate-200/80 shadow-2xs'
+          }">
+            <div class="flex items-center gap-3 min-w-0 mr-3">
+              <!-- Custom Checkbox -->
+              <button
+                type="button"
+                data-hw-id="${hw.id}"
+                class="hw-check-btn checkbox-bounce touch-target w-7 h-7 rounded-xl flex items-center justify-center transition-all border cursor-pointer flex-shrink-0 ${
+                  isSelfChecked
+                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs'
+                    : 'bg-white border-slate-300 text-transparent hover:border-emerald-400'
+                }"
+                title="標記為已自主完成"
+              >
+                <i class="fa-solid fa-check text-xs"></i>
+              </button>
+
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-slate-100 text-slate-600 flex-shrink-0">
+                    ${escapeHtml(typeName)}
+                  </span>
+                  <span class="text-sm sm:text-base font-bold text-slate-900 truncate ${isSelfChecked ? 'line-through text-slate-500' : ''}">
+                    ${escapeHtml(hw.name)}
+                  </span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2">
+                  <span>${isSelfChecked ? '✨ 我已完成此作業' : '⏳ 待完成'}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Teacher Status Badge -->
+            <div class="flex-shrink-0">
+              ${teacherPill}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      elements.studentHomeworkList.innerHTML = listHtml;
+
+      // Update Progress
+      const percent = Math.round((selfCheckedCount / homeworks.length) * 100);
+      elements.hwProgressText.textContent = `${selfCheckedCount} / ${homeworks.length} 已自主完成 (${percent}%)`;
+      elements.hwProgressBar.style.width = `${percent}%`;
+      elements.statHwProgress.textContent = `${percent}%`;
+
+      // Checkbox event listeners
+      elements.studentHomeworkList.querySelectorAll('.hw-check-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const hwId = btn.getAttribute('data-hw-id');
+          state.selfChecks[hwId] = !state.selfChecks[hwId];
+          saveLocalState();
+          renderHomeworkSection(data);
+          if (state.selfChecks[hwId]) {
+            showToast("太棒了！已標記自主完成！", "success");
+          }
+        });
+      });
+    }
+
+    // ==========================================
+    // MODULE 2: TEST SCORES TRACKER
+    // ==========================================
+
+    function renderScoresSection() {
+      const today = getTodayDateString();
+      const todayScores = state.scores.filter(s => s.date === today);
+
+      elements.tabScoresCountBadge.textContent = `${todayScores.length}`;
+      elements.scoresCountBadge.textContent = `${todayScores.length} 筆測驗`;
+      elements.statTestCount.textContent = `${todayScores.length} 筆`;
+
+      if (todayScores.length === 0) {
+        elements.scoresAvgDisplay.innerHTML = `均分：<span class="text-slate-400 font-extrabold">--</span>`;
+        elements.statTestAvg.textContent = `--`;
+        elements.studentScoresList.innerHTML = `
+          <div class="text-center py-10 text-slate-400 text-sm">
+            <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-300 mx-auto flex items-center justify-center text-xl mb-2">
+              <i class="fa-solid fa-pen-ruler"></i>
+            </div>
+            今日尚未登記小考或作業成績<br>
+            <span class="text-xs text-slate-400 mt-1 inline-block">點擊上方「登記新成績」開始紀錄！</span>
+          </div>
+        `;
+        return;
+      }
+
+      // Calculate Average
+      const total = todayScores.reduce((sum, s) => sum + (parseFloat(s.score) || 0), 0);
+      const avg = (total / todayScores.length).toFixed(1);
+      elements.scoresAvgDisplay.innerHTML = `今日平均：<span class="text-emerald-600 font-black text-sm">${avg} 分</span>`;
+      elements.statTestAvg.textContent = `${avg}分`;
+
+      elements.studentScoresList.innerHTML = todayScores.map(s => {
+        const scoreVal = parseFloat(s.score) || 0;
+        let scoreColor = "text-emerald-600 bg-emerald-50 border-emerald-200";
+        if (scoreVal < 60) {
+          scoreColor = "text-rose-600 bg-rose-50 border-rose-200";
+        } else if (scoreVal < 80) {
+          scoreColor = "text-amber-600 bg-amber-50 border-amber-200";
+        }
+
+        let corBadge = "";
+        if (s.correction === "全對免訂正") {
+          corBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800">✨ 全對</span>`;
+        } else if (s.correction === "已完成訂正") {
+          corBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-100 text-teal-800">✅ 已訂正</span>`;
+        } else {
+          corBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-100 text-rose-800">✏️ 待訂正</span>`;
+        }
+
+        return `
+          <div class="p-3.5 sm:p-4 rounded-2xl bg-slate-50/80 hover:bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3 transition-colors">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-12 h-12 rounded-2xl border font-black text-lg flex items-center justify-center flex-shrink-0 ${scoreColor}">
+                ${s.score}
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-slate-200 text-slate-700">
+                    ${escapeHtml(s.subject)}
+                  </span>
+                  <span class="font-bold text-slate-900 text-sm truncate">
+                    ${escapeHtml(s.name)}
+                  </span>
+                </div>
+                <div class="flex items-center gap-2 mt-1">
+                  ${corBadge}
+                  ${s.remark ? `<span class="text-xs text-slate-500 truncate"><i class="fa-regular fa-comment-dots text-slate-400 mr-1"></i>${escapeHtml(s.remark)}</span>` : ''}
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <button
+                type="button"
+                data-id="${s.id}"
+                class="btn-edit-score touch-target w-8 h-8 rounded-xl bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center border border-slate-200 text-xs cursor-pointer"
+                title="編輯此成績"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button
+                type="button"
+                data-id="${s.id}"
+                class="btn-del-score touch-target w-8 h-8 rounded-xl bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center border border-slate-200 text-xs cursor-pointer"
+                title="刪除此紀錄"
+              >
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Attach event listeners
+      elements.studentScoresList.querySelectorAll('.btn-del-score').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          if (confirm("確定要刪除這筆成績紀錄嗎？")) {
+            state.scores = state.scores.filter(s => s.id !== id);
+            saveLocalState();
+            renderScoresSection();
+            syncScoresToCloud();
+            showToast("已刪除成績紀錄", "info");
+          }
+        });
+      });
+
+      elements.studentScoresList.querySelectorAll('.btn-edit-score').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const item = state.scores.find(s => s.id === id);
+          if (item) openScoreModal(item);
+        });
+      });
+    }
+
+    function openScoreModal(editItem = null) {
+      if (editItem) {
+        elements.scoreModalTitle.textContent = "編輯成績紀錄";
+        elements.editScoreId.value = editItem.id;
+        elements.inputScoreSubject.value = editItem.subject || "";
+        elements.inputScoreName.value = editItem.name || "";
+        elements.inputScoreVal.value = editItem.score || "";
+        elements.inputScoreRemark.value = editItem.remark || "";
+        selectedModalCorrection = editItem.correction || "全對免訂正";
+      } else {
+        elements.scoreModalTitle.textContent = "登記新成績";
+        elements.editScoreId.value = "";
+        elements.inputScoreSubject.value = "國語";
+        elements.inputScoreName.value = "";
+        elements.inputScoreVal.value = "";
+        elements.inputScoreRemark.value = "";
+        selectedModalCorrection = "全對免訂正";
+      }
+
+      updateCorrectionButtons();
+      elements.scoreModal.classList.remove("hidden");
+      elements.inputScoreName.focus();
+    }
+
+    function closeScoreModal() {
+      elements.scoreModal.classList.add("hidden");
+    }
+
+    function updateCorrectionButtons() {
+      elements.correctionPickerGroup.querySelectorAll('.cor-btn').forEach(btn => {
+        const val = btn.getAttribute('data-cor');
+        if (val === selectedModalCorrection) {
+          btn.className = "cor-btn p-2 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 text-xs font-black transition-all cursor-pointer shadow-xs";
+        } else {
+          btn.className = "cor-btn p-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:border-emerald-300 transition-all cursor-pointer bg-white";
+        }
+      });
+    }
+
+    function saveScoreFromModal() {
+      const subject = elements.inputScoreSubject.value.trim() || "綜合";
+      const name = elements.inputScoreName.value.trim();
+      const score = elements.inputScoreVal.value.trim();
+      const remark = elements.inputScoreRemark.value.trim();
+      const editId = elements.editScoreId.value;
+
+      if (!name) {
+        showToast("請輸入測驗名稱或課次！", "error");
+        elements.inputScoreName.focus();
+        return;
+      }
+      if (score === "" || isNaN(score) || score < 0 || score > 100) {
+        showToast("請輸入 0 ~ 100 的有效分數！", "error");
+        elements.inputScoreVal.focus();
+        return;
+      }
+
+      const today = getTodayDateString();
+
+      if (editId) {
+        const idx = state.scores.findIndex(s => s.id === editId);
+        if (idx !== -1) {
+          state.scores[idx] = {
+            ...state.scores[idx],
+            subject,
+            name,
+            score: parseFloat(score),
+            correction: selectedModalCorrection,
+            remark
+          };
+          showToast("成績修改成功！", "success");
+        }
+      } else {
+        const newRecord = {
+          id: "score_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+          date: today,
+          subject,
+          name,
+          score: parseFloat(score),
+          correction: selectedModalCorrection,
+          remark
+        };
+        state.scores.unshift(newRecord);
+        showToast("成績登記成功！", "success");
+      }
+
+      saveLocalState();
+      renderScoresSection();
+      syncScoresToCloud();
+      closeScoreModal();
+    }
+
+    // ==========================================
+    // MODULE 3: 7-DAY CONTACT BOOK & MOOD
+    // ==========================================
+
+    function renderContactBookSection(data) {
+      const contactBook = data.contactBook || {};
+      const dates = [];
+      const today = new Date();
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+        
+        dates.push({
+          dateStr: dateStr,
+          dayOfWeek: getDayOfWeekName(d),
+          shortDate: `${d.getMonth() + 1}/${d.getDate()}`,
+          isToday: i === 0,
+          hasEntries: Boolean(contactBook[dateStr] && contactBook[dateStr].length > 0)
+        });
+      }
+
+      if (!state.selectedContactDate || !dates.some(d => d.dateStr === state.selectedContactDate)) {
+        state.selectedContactDate = dates[dates.length - 1].dateStr;
+      }
+
+      elements.contactDateSlider.innerHTML = dates.map(d => {
+        const isSelected = d.dateStr === state.selectedContactDate;
+        const activeClass = isSelected
+          ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20 border-emerald-600'
+          : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200';
+
+        return `
+          <button
+            type="button"
+            data-date="${d.dateStr}"
+            class="contact-date-btn touch-target flex-1 min-w-[72px] sm:min-w-[84px] py-2.5 px-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center relative cursor-pointer ${activeClass}"
+          >
+            <span class="text-[10px] sm:text-xs font-semibold ${isSelected ? 'text-emerald-100' : 'text-slate-400'}">
+              ${d.isToday ? '今天' : d.dayOfWeek}
+            </span>
+            <span class="text-xs sm:text-sm font-extrabold mt-0.5">
+              ${d.shortDate}
+            </span>
+            ${d.hasEntries ? `
+              <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-emerald-200' : 'bg-emerald-500'} absolute top-2 right-2"></span>
+            ` : ''}
+          </button>
+        `;
+      }).join('');
+
+      elements.contactDateSlider.querySelectorAll('.contact-date-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.selectedContactDate = btn.getAttribute('data-date');
+          renderContactBookSection(data);
+          renderMoodJournalSection();
+        });
+      });
+
+      const activeDateStr = state.selectedContactDate;
+      const activeObj = dates.find(d => d.dateStr === activeDateStr);
+      elements.selectedDateLabel.textContent = `${activeDateStr} (${activeObj ? activeObj.dayOfWeek : ''})`;
+
+      const entries = contactBook[activeDateStr] || [];
+      elements.contactEntriesCount.textContent = `共 ${entries.length} 則`;
+
+      if (entries.length === 0) {
+        elements.contactBookContainer.innerHTML = `
+          <div class="text-center py-8 text-slate-400 text-sm">
+            <i class="fa-regular fa-calendar-xmark text-2xl mb-1.5 block text-slate-300"></i>
+            該日無特殊聯絡或公告事項
+          </div>
+        `;
+      } else {
+        elements.contactBookContainer.innerHTML = entries.map((entry, idx) => {
+          const text = typeof entry === 'string' ? entry : (entry.text || '');
+          return `
+            <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/60">
+              <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-extrabold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+                ${idx + 1}
+              </span>
+              <div class="text-sm font-bold text-slate-800 leading-relaxed whitespace-pre-wrap flex-1">
+                ${escapeHtml(text)}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function renderMoodJournalSection() {
+      const activeDate = state.selectedContactDate || getTodayDateString();
+      const currentMood = state.moodJournal[activeDate] || { mood: "😄 充實愉快", text: "" };
+      selectedMood = currentMood.mood;
+
+      // Update buttons
+      elements.moodPickerGroup.querySelectorAll('.mood-btn').forEach(btn => {
+        const val = btn.getAttribute('data-mood');
+        if (val === selectedMood) {
+          btn.className = "mood-btn touch-target p-2.5 rounded-2xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 text-center transition-all cursor-pointer text-xs font-black shadow-xs";
+        } else {
+          btn.className = "mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-slate-700 text-center hover:bg-slate-50 transition-all cursor-pointer text-xs font-bold bg-white";
+        }
+      });
+
+      elements.moodJournalTextarea.value = currentMood.text || "";
+    }
+
+    function saveMoodJournal() {
+      const activeDate = state.selectedContactDate || getTodayDateString();
+      const text = elements.moodJournalTextarea.value.trim();
+      state.moodJournal[activeDate] = {
+        mood: selectedMood,
+        text: text
+      };
+      saveLocalState();
+      syncScoresToCloud();
+      showToast("已成功儲存今日心情札記！", "success");
+    }
+
+    // ==========================================
+    // MODULE 4: COPY DAILY SUMMARY FOR LINE
+    // ==========================================
+
+    function copyDailySummary() {
+      const today = getTodayDateString();
+      const seat = state.studentSeat || "--";
+      const className = state.classData?.className || "班級";
+      const homeworks = state.classData?.homeworks || [];
+      const todayScores = state.scores.filter(s => s.date === today);
+      const mood = state.moodJournal[today] || { mood: "😄 充實", text: "" };
+
+      let selfCount = 0;
+      homeworks.forEach(hw => {
+        if (state.selfChecks[hw.id]) selfCount++;
+      });
+
+      let text = `【${className} ${seat}號 學生聯絡簿自主回報】\n`;
+      text += `📅 日期：${today}\n`;
+      text += `📝 作業檢核：${selfCount}/${homeworks.length} 項已自主完成 (${homeworks.length > 0 ? Math.round(selfCount/homeworks.length*100) : 100}%)\n`;
+      
+      if (todayScores.length > 0) {
+        text += `💯 今日測驗成績：\n`;
+        todayScores.forEach(s => {
+          text += `  • ${s.subject} ${s.name}：${s.score}分 (${s.correction})\n`;
+        });
+      }
+
+      if (mood.text) {
+        text += `💬 今日生活隨筆 [${mood.mood}]：\n  ${mood.text}\n`;
+      }
+
+      const currentUrl = window.location.href;
+      text += `🔗 學生端數位聯絡簿：${currentUrl}\n`;
+
+      safeCopyToClipboard(text, "已成功複製今日聯絡簿回報文字，可直接傳送給家長！");
+    }
+
+    // ==========================================
+    // EVENT LISTENERS
+    // ==========================================
+
+    function setupEventListeners() {
+      // Login Form Submit
+      elements.accessCodeForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const code = elements.inputAccessCode.value.trim();
+        if (code) connectToClass(code);
+      });
+
+      // Tab Switching
+      elements.tabHwBtn.addEventListener("click", () => switchTab("hw"));
+      elements.tabScoresBtn.addEventListener("click", () => switchTab("scores"));
+      elements.tabContactBtn.addEventListener("click", () => switchTab("contact"));
+
+      // Settings Modal
+      elements.openSettingsBtn.addEventListener("click", () => elements.settingsModal.classList.remove("hidden"));
+      elements.navSeatBtn.addEventListener("click", () => elements.settingsModal.classList.remove("hidden"));
+      elements.closeSettingsModalBtn.addEventListener("click", () => elements.settingsModal.classList.add("hidden"));
+      elements.saveSettingsBtn.addEventListener("click", () => {
+        const chosen = elements.modalSeatSelect.value;
+        if (chosen) setStudentSeat(chosen);
+        elements.settingsModal.classList.add("hidden");
+      });
+
+      elements.switchClassModalBtn.addEventListener("click", () => {
+        if (confirm("確定要切換到其他班級代碼嗎？")) {
+          localStorage.removeItem(LS_ACCESS_CODE_KEY);
+          localStorage.removeItem(LS_STUDENT_SEAT_KEY);
+          state.accessCode = "";
+          state.studentSeat = null;
+          state.classData = null;
+          elements.settingsModal.classList.add("hidden");
+          const url = new URL(window.location);
+          url.searchParams.delete("code");
+          url.searchParams.delete("seat");
+          window.history.replaceState({}, "", url);
+          showLoginView();
+        }
+      });
+
+      // Score Modal Buttons
+      elements.btnOpenAddScore.addEventListener("click", () => openScoreModal(null));
+      elements.closeScoreModalBtn.addEventListener("click", closeScoreModal);
+      elements.cancelScoreModalBtn.addEventListener("click", closeScoreModal);
+      elements.saveScoreModalBtn.addEventListener("click", saveScoreFromModal);
+
+      // Subject preset buttons
+      elements.subjectPickerGroup.querySelectorAll('.sub-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          elements.inputScoreSubject.value = btn.getAttribute('data-sub');
+        });
+      });
+
+      // Correction preset buttons
+      elements.correctionPickerGroup.querySelectorAll('.cor-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedModalCorrection = btn.getAttribute('data-cor');
+          updateCorrectionButtons();
+        });
+      });
+
+      // Mood preset buttons
+      elements.moodPickerGroup.querySelectorAll('.mood-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedMood = btn.getAttribute('data-mood');
+          renderMoodJournalSection();
+        });
+      });
+
+      elements.btnSaveMoodJournal.addEventListener("click", saveMoodJournal);
+      elements.btnCopyDailyReport.addEventListener("click", copyDailySummary);
+    }
+
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+      const tabs = [
+        { name: "hw", btn: elements.tabHwBtn, panel: elements.panelHomework },
+        { name: "scores", btn: elements.tabScoresBtn, panel: elements.panelScores },
+        { name: "contact", btn: elements.tabContactBtn, panel: elements.panelContact }
+      ];
+
+      tabs.forEach(t => {
+        if (t.name === tabName) {
+          t.panel.classList.remove("hidden");
+          t.btn.className = "flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all bg-white text-emerald-700 shadow-sm flex items-center justify-center gap-2 cursor-pointer";
+        } else {
+          t.panel.classList.add("hidden");
+          t.btn.className = "flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2 cursor-pointer";
+        }
+      });
+    }
+
+    // Run on start
+    init();
+  </script>
+</body>
+</html>
