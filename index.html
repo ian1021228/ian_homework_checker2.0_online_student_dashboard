@@ -276,6 +276,14 @@
               <p class="text-emerald-100 text-xs sm:text-sm mt-1">
                 自主管理今日作業與小考成績，邁向自律優秀的每一天！
               </p>
+              <!-- Parent Access PIN Card -->
+              <div class="mt-3.5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-white/20 backdrop-blur-md text-white border border-white/25 text-xs font-semibold shadow-xs">
+                <i class="fa-solid fa-key text-amber-300"></i>
+                <span>家長查核專屬密碼：<strong id="display-parent-pin" class="font-mono text-sm tracking-widest text-amber-200">----</strong></span>
+                <button id="btn-edit-pin" type="button" title="點擊自訂或修改密碼" class="touch-target px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 text-white text-[11px] font-extrabold cursor-pointer transition-colors ml-1">
+                  <i class="fa-solid fa-pen text-[10px] mr-1"></i>修改密碼
+                </button>
+              </div>
             </div>
 
             <!-- Fast Stat Badges -->
@@ -714,11 +722,13 @@
     const LS_STUDENT_SCORES_KEY = "student_scores_records";
     const LS_STUDENT_HW_CHECK_KEY = "student_hw_self_checks";
     const LS_STUDENT_MOOD_KEY = "student_mood_journal";
+    const LS_PARENT_PIN_PREFIX = "student_parent_pin_";
 
     // App Global State
     const state = {
       accessCode: "",
       studentSeat: null,
+      parentPin: "",
       classData: null,
       selectedContactDate: getTodayDateString(),
       activeTab: "hw", // "hw" | "scores" | "contact"
@@ -741,7 +751,7 @@
       loginErrorBox: document.getElementById("login-error-box"),
       loginErrorMsg: document.getElementById("login-error-msg"),
 
-      // Header
+      // Header & Pin
       headerClassName: document.getElementById("header-class-name"),
       headerSeatBadge: document.getElementById("header-seat-badge"),
       headerAccessCode: document.getElementById("header-access-code"),
@@ -749,6 +759,8 @@
       navSeatBtn: document.getElementById("nav-seat-btn"),
       navSeatLabel: document.getElementById("nav-seat-label"),
       openSettingsBtn: document.getElementById("open-settings-btn"),
+      displayParentPin: document.getElementById("display-parent-pin"),
+      btnEditPin: document.getElementById("btn-edit-pin"),
 
       // Student Section
       studentUnboundView: document.getElementById("student-unbound-view"),
@@ -1175,6 +1187,7 @@
         await setDoc(profileDocRef, {
           classCode: state.accessCode,
           seat: state.studentSeat,
+          parentPin: state.parentPin || "",
           scores: state.scores,
           moodJournal: state.moodJournal,
           updatedAt: new Date().toISOString()
@@ -1193,14 +1206,23 @@
         if (resp.status === 200) {
           const json = await resp.json();
           const cloudData = parseRestDocument(json);
-          if (cloudData && Array.isArray(cloudData.scores)) {
-            // Merge cloud scores with local
-            const existingIds = new Set(state.scores.map(s => s.id));
-            cloudData.scores.forEach(cs => {
-              if (!existingIds.has(cs.id)) {
-                state.scores.push(cs);
+          if (cloudData) {
+            if (cloudData.parentPin) {
+              state.parentPin = cloudData.parentPin;
+              const key = LS_PARENT_PIN_PREFIX + state.accessCode + "_" + state.studentSeat;
+              localStorage.setItem(key, cloudData.parentPin);
+              if (elements.displayParentPin) {
+                elements.displayParentPin.textContent = cloudData.parentPin;
               }
-            });
+            }
+            if (Array.isArray(cloudData.scores)) {
+              const existingIds = new Set(state.scores.map(s => s.id));
+              cloudData.scores.forEach(cs => {
+                if (!existingIds.has(cs.id)) {
+                  state.scores.push(cs);
+                }
+              });
+            }
             if (cloudData.moodJournal) {
               state.moodJournal = { ...cloudData.moodJournal, ...state.moodJournal };
             }
@@ -1210,6 +1232,41 @@
           }
         }
       } catch (e) {}
+    }
+
+    function ensureStudentPin() {
+      if (!state.accessCode || !state.studentSeat) return;
+      const key = LS_PARENT_PIN_PREFIX + state.accessCode + "_" + state.studentSeat;
+      let pin = localStorage.getItem(key);
+      if (!pin) {
+        pin = String(Math.floor(1000 + Math.random() * 9000));
+        localStorage.setItem(key, pin);
+        syncScoresToCloud();
+      }
+      state.parentPin = pin;
+      if (elements.displayParentPin) {
+        elements.displayParentPin.textContent = pin;
+      }
+    }
+
+    function promptEditPin() {
+      const currentPin = state.parentPin || "未設定";
+      const newPin = prompt(`請自訂或修改家長查核專屬密碼 (4~6 位數字或英數)：\n目前密碼為：${currentPin}\n家長端輸入此密碼後方可查核您的成績與個人聯絡簿`, currentPin === "未設定" ? "" : currentPin);
+      if (newPin !== null) {
+        const cleanPin = newPin.trim();
+        if (cleanPin.length >= 3 && cleanPin.length <= 10) {
+          state.parentPin = cleanPin;
+          const key = LS_PARENT_PIN_PREFIX + state.accessCode + "_" + state.studentSeat;
+          localStorage.setItem(key, cleanPin);
+          if (elements.displayParentPin) {
+            elements.displayParentPin.textContent = cleanPin;
+          }
+          syncScoresToCloud();
+          showToast(`家長查核密碼已成功設定為：${cleanPin}！`, "success");
+        } else {
+          showToast("密碼長度需在 3~10 位之間，請重試！", "error");
+        }
+      }
     }
 
     // ==========================================
@@ -1243,6 +1300,9 @@
       elements.studentSeatDisplay.textContent = `${state.studentSeat}`;
       elements.headerSeatBadge.textContent = `${state.studentSeat} 號`;
       elements.navSeatLabel.textContent = `${state.studentSeat} 號`;
+
+      // Ensure Student Parent PIN is active & displayed
+      ensureStudentPin();
 
       // 2. Render Homework Section
       renderHomeworkSection(data);
@@ -1852,6 +1912,7 @@
       });
 
       elements.btnSaveMoodJournal.addEventListener("click", saveMoodJournal);
+      elements.btnEditPin?.addEventListener("click", promptEditPin);
     }
 
     function switchTab(tabName) {
