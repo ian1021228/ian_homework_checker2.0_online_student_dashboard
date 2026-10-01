@@ -12,6 +12,9 @@
   <link rel="icon" type="image/svg+xml" href="homework-checker-icon.svg">
   <link class="rounded-2xl shadow-lg shadow-emerald-500/10" rel="apple-touch-icon" href="homework-checker-icon.png">
   <meta name="theme-color" content="#059669">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="學生聯絡簿">
 
   <!-- Network Preconnect -->
   <link rel="preconnect" href="https://firestore.googleapis.com">
@@ -367,17 +370,92 @@
         <!-- TAB 2: TEST SCORES TRACKER & LEARNING ANALYTICS -->
         <!-- ============================================== -->
         <div id="panel-scores" class="space-y-5 hidden">
-          <!-- Add Score Action Bar -->
-          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-                  <i class="fa-solid fa-award text-sm"></i>
-                </span>
-                <h3 class="text-base font-extrabold text-slate-900">成績登記與自主學習分析</h3>
-              </div>
-              <p class="text-xs text-slate-400 mt-1">登記平時測驗小考、分析 19 門領域學科表現、掌握歷史進步走勢</p>
+          <!-- State A: 導師尚未開通此座號 PIN 碼 -->
+          <div id="student-scores-unconfigured-view" class="hidden text-center py-12 px-5 bg-white rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+            <div class="w-16 h-16 rounded-3xl bg-amber-50 text-amber-600 flex items-center justify-center text-3xl mx-auto border border-amber-200/80 shadow-xs">
+              <i class="fa-solid fa-lock"></i>
             </div>
+            <div class="max-w-md mx-auto space-y-2">
+              <h3 class="text-lg font-black text-slate-900">成績系統尚未開通</h3>
+              <p class="text-xs text-slate-500 leading-relaxed">
+                班級導師尚未設定座號 <strong id="unconfigured-seat-number" class="text-amber-800">--</strong> 號之 6 位數成績專屬驗證碼。<br>
+                依班級安全隱私規範，<b>必須等到教師在後台完成 PIN 碼設定開通後</b>，方可使用成績系統。
+              </p>
+              <div class="p-3 bg-amber-50 rounded-2xl border border-amber-100 text-xs text-amber-800 font-bold inline-block">
+                💡 請提醒班級導師在教師端【管理班級】點選【成績 PIN 碼】一鍵開通！
+              </div>
+            </div>
+          </div>
+
+          <!-- State B: 導師已開通，但本機尚未驗證（首次綁定或跨座號防窺防護） -->
+          <div id="student-scores-locked-view" class="hidden text-center py-10 px-5 bg-white rounded-3xl border border-slate-200/80 shadow-sm space-y-5">
+            <div class="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-3xl mx-auto border border-emerald-200/80 shadow-xs">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="max-w-md mx-auto space-y-2">
+              <h3 class="text-lg font-black text-slate-900">學生個人 6 位數專屬密碼驗證</h3>
+              <p class="text-xs text-slate-500 leading-relaxed" id="student-pin-verify-desc">
+                首次存取座號 <strong id="locked-seat-number" class="text-emerald-800">--</strong> 號或切換至其他同學座號時，必須輸入該座號之 6 位數專屬密碼。<br>
+                驗證成功後本機將自動記憶憑證，日後免密直開！
+              </p>
+            </div>
+
+            <!-- PIN Form -->
+            <form id="student-pin-auth-form" class="max-w-xs mx-auto space-y-3.5">
+              <div class="relative">
+                <input
+                  type="password"
+                  id="input-student-auth-pin"
+                  class="w-full text-center font-mono tracking-widest text-2xl font-black py-3 px-4 bg-slate-50 border border-slate-300 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all placeholder:text-slate-300 placeholder:text-sm placeholder:tracking-normal placeholder:font-normal"
+                  placeholder="請輸入 6 位數密碼"
+                  maxlength="6"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  required
+                />
+                <button
+                  type="button"
+                  id="btn-toggle-student-auth-pin"
+                  class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                  title="顯示/隱藏密碼"
+                >
+                  <i class="fa-regular fa-eye text-sm" id="icon-student-pin-eye"></i>
+                </button>
+              </div>
+
+              <!-- Error Alert -->
+              <div id="student-pin-error-box" class="hidden p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2 text-left">
+                <i class="fa-solid fa-circle-exclamation mt-0.5 flex-shrink-0"></i>
+                <span id="student-pin-error-msg" class="leading-snug">密碼不正確！若忘記密碼，請聯繫導師在教師端一鍵重設。</span>
+              </div>
+
+              <button
+                type="submit"
+                id="btn-submit-student-pin"
+                class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <i class="fa-solid fa-key"></i>
+                <span>驗證並綁定此裝置（本機免密直開）</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- State C: 已驗證通過（本機免密直開） -->
+          <div id="student-scores-unlocked-view" class="space-y-5">
+            <!-- Add Score Action Bar -->
+            <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-award text-sm"></i>
+                  </span>
+                  <h3 class="text-base font-extrabold text-slate-900">成績登記與自主學習分析</h3>
+                  <button id="btn-relock-scores" type="button" class="text-xs font-semibold text-slate-400 hover:text-rose-600 flex items-center gap-1 transition-colors cursor-pointer" title="重新鎖定並保護個人隱私">
+                    <i class="fa-solid fa-lock text-[10px]"></i> 重新上鎖
+                  </button>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">登記平時測驗小考、分析 21 門領域學科表現、掌握歷史進步走勢</p>
+              </div>
 
             <button
               id="btn-open-add-score"
@@ -436,24 +514,25 @@
             </div>
           </div>
 
-          <!-- 19 Subjects Performance Analytics Card -->
+          <!-- 21 Subjects Performance Analytics Card -->
           <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
                 <h4 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
                   <i class="fa-solid fa-layer-group text-emerald-600"></i>
-                  <span>19 門領域學科成績深度分析</span>
+                  <span>21 門領域學科成績深度分析</span>
                 </h4>
                 <p class="text-[11px] text-slate-400 mt-0.5">點擊任一科目可快速過濾該科歷史小考紀錄</p>
               </div>
               <!-- Domain Filter Tabs -->
               <div class="flex items-center gap-1 overflow-x-auto pb-1 custom-scrollbar text-xs font-bold" id="domain-analytics-filter">
                 <button type="button" data-domain="all" class="domain-filter-btn px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-extrabold cursor-pointer">全部學科</button>
-                <button type="button" data-domain="lang-math" class="domain-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">語文與數學</button>
+                <button type="button" data-domain="lang" class="domain-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">語文</button>
+                <button type="button" data-domain="math" class="domain-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">數學</button>
                 <button type="button" data-domain="social" class="domain-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">社會</button>
                 <button type="button" data-domain="nature" class="domain-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">自然</button>
                 <button type="button" data-domain="arts-tech" class="domain-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">藝術與科技</button>
-                <button type="button" data-domain="health-comp" class="domain-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">健體綜合</button>
+                <button type="button" data-domain="health-comp" class="domain-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">健體與綜合</button>
               </div>
             </div>
 
@@ -511,6 +590,7 @@
             </div>
           </div>
         </div>
+      </div>
 
         <!-- ============================================== -->
         <!-- TAB 3: CONTACT BOOK & MOOD DIARY (7天聯絡簿)  -->
@@ -604,9 +684,13 @@
     <footer class="mt-auto bg-white border-t border-slate-200/80 py-4 px-4 text-center">
       <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
         <div>
-          <span>作業點收系統 — 學生數位聯絡簿端 v2.0</span>
+          <span>作業點收系統 — 學生端 v2.0</span>
           <span class="mx-2 text-slate-300">|</span>
-          <a href="https://ian1021228.github.io/ian_homework_checker2.0_online_parent_dashboard/" class="text-emerald-600 hover:underline font-bold">前往家長即時查核端</a>
+          <a href="https://docs.google.com/forms/d/19BPzX6vMrSnvW3j2s4OOvaiP3p1gS8auGbRt3f9aFkM/edit" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline font-bold">
+            <i class="fa-solid fa-comment-dots text-indigo-500 mr-1"></i>回報問題/提供建議
+          </a>
+          <span class="mx-2 text-slate-300">|</span>
+          <a href="https://ian1021228.github.io/ian_homework_checker2.0_online_parent_dashboard/" class="text-emerald-600 hover:underline font-bold">家長端</a>
           <span class="mx-2 text-slate-300">|</span>
           <a href="https://ian1021228.github.io/homework_checker3.0/" class="text-slate-600 hover:underline font-semibold">首頁</a>
         </div>
@@ -648,72 +732,120 @@
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">
               <i class="fa-solid fa-book text-emerald-600 mr-1"></i> 考試科目（點選快速填入或自行輸入）
             </label>
-            <span class="text-[11px] text-slate-400 font-medium">19 門領域學科</span>
+            <span class="text-[11px] text-slate-400 font-medium">21 門領域學科</span>
           </div>
 
-          <!-- Grouped Subjects Pills Container -->
-          <div class="space-y-2 mb-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-200/80" id="subject-picker-group">
-            <!-- 語文與數學 -->
-            <div>
-              <div class="text-[10px] font-extrabold text-slate-400 mb-1 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> 語文與數學
+          <!-- Subject Picker (Two Rows: Simple & Detailed Collapsible) -->
+          <div class="mb-3 space-y-2" id="subject-picker-group">
+            <!-- Row 1: 簡易分類 (6 門常用) + 展開詳細分類按鈕 -->
+            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-extrabold text-slate-700 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 簡易分類（常用科目直選）
+                </span>
+                <button type="button" id="btn-toggle-detailed-subjects" class="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-xl border border-emerald-200 transition-all flex items-center gap-1 cursor-pointer">
+                  <i class="fa-solid fa-layer-group text-emerald-600 text-[11px]"></i>
+                  <span id="text-toggle-detailed-subjects">展開 21 門詳細分類</span>
+                  <i id="icon-toggle-detailed-subjects" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
+                </button>
               </div>
-              <div class="flex flex-wrap gap-1.5">
-                <button type="button" data-sub="國語文" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">國語文</button>
-                <button type="button" data-sub="英語文" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">英語文</button>
-                <button type="button" data-sub="數學" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">數學</button>
+
+              <!-- 簡易分類按鈕列 -->
+              <div class="flex flex-wrap gap-1.5" id="simple-subject-picker">
+                <button type="button" data-sub="國語" class="sub-btn px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">國語</button>
+                <button type="button" data-sub="數學" class="sub-btn px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">數學</button>
+                <button type="button" data-sub="英語" class="sub-btn px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">英語</button>
+                <button type="button" data-sub="自然" class="sub-btn px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">自然</button>
+                <button type="button" data-sub="社會" class="sub-btn px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">社會</button>
+                <button type="button" data-sub="其他" class="sub-btn px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-500 transition-all cursor-pointer">其他</button>
               </div>
             </div>
 
-            <!-- 社會領域 -->
-            <div>
-              <div class="text-[10px] font-extrabold text-slate-400 mb-1 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> 社會領域
+            <!-- Row 2: 詳細分類（108 課綱六大領域 21 門學科，可收合） -->
+            <div id="detailed-subject-picker-container" class="hidden p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5 transition-all">
+              <div class="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
+                <span class="text-[11px] font-black text-slate-700 flex items-center gap-1.5">
+                  <i class="fa-solid fa-graduation-cap text-indigo-600"></i>
+                  108 課綱六大領域 21 門詳細學科
+                </span>
+                <button type="button" id="btn-close-detailed-subjects" class="text-[11px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer flex items-center gap-0.5">
+                  <i class="fa-solid fa-chevron-up text-[10px]"></i> 收合
+                </button>
               </div>
-              <div class="flex flex-wrap gap-1.5">
-                <button type="button" data-sub="歷史" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">歷史</button>
-                <button type="button" data-sub="地理" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">地理</button>
-                <button type="button" data-sub="公民與社會" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">公民與社會</button>
-              </div>
-            </div>
 
-            <!-- 自然科學 -->
-            <div>
-              <div class="text-[10px] font-extrabold text-slate-400 mb-1 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 自然科學
+              <!-- 一、 語文領域（2 門） -->
+              <div>
+                <div class="text-[10px] font-extrabold text-indigo-700 mb-1 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> 一、 語文領域（2 門）
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <button type="button" data-sub="國語文" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">國語文</button>
+                  <button type="button" data-sub="英語文" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">英語文</button>
+                </div>
               </div>
-              <div class="flex flex-wrap gap-1.5">
-                <button type="button" data-sub="生物" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">生物</button>
-                <button type="button" data-sub="理化" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">理化</button>
-                <button type="button" data-sub="地球科學" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">地球科學</button>
-              </div>
-            </div>
 
-            <!-- 藝術與科技 -->
-            <div>
-              <div class="text-[10px] font-extrabold text-slate-400 mb-1 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> 藝術與科技
+              <!-- 二、 數學領域（1 門） -->
+              <div>
+                <div class="text-[10px] font-extrabold text-blue-700 mb-1 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> 二、 數學領域（1 門）
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <button type="button" data-sub="數學" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">數學</button>
+                </div>
               </div>
-              <div class="flex flex-wrap gap-1.5">
-                <button type="button" data-sub="音樂" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">音樂</button>
-                <button type="button" data-sub="視覺藝術" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">視覺藝術</button>
-                <button type="button" data-sub="表演藝術" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">表演藝術</button>
-                <button type="button" data-sub="資訊科技" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">資訊科技</button>
-                <button type="button" data-sub="生活科技" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">生活科技</button>
-              </div>
-            </div>
 
-            <!-- 健體與綜合活動 -->
-            <div>
-              <div class="text-[10px] font-extrabold text-slate-400 mb-1 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> 健體與綜合活動
+              <!-- 三、 社會領域（4 門） -->
+              <div>
+                <div class="text-[10px] font-extrabold text-amber-700 mb-1 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> 三、 社會領域（4 門）
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <button type="button" data-sub="歷史" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">歷史</button>
+                  <button type="button" data-sub="地理" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">地理</button>
+                  <button type="button" data-sub="公民與社會" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">公民與社會</button>
+                  <button type="button" data-sub="綜合社會" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">綜合社會</button>
+                </div>
               </div>
-              <div class="flex flex-wrap gap-1.5">
-                <button type="button" data-sub="健康教育" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">健康教育</button>
-                <button type="button" data-sub="體育" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">體育</button>
-                <button type="button" data-sub="家政" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">家政</button>
-                <button type="button" data-sub="童軍" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">童軍</button>
-                <button type="button" data-sub="輔導" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">輔導</button>
+
+              <!-- 四、 自然科學領域（4 門） -->
+              <div>
+                <div class="text-[10px] font-extrabold text-emerald-700 mb-1 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 四、 自然科學領域（4 門）
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <button type="button" data-sub="生物" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">生物</button>
+                  <button type="button" data-sub="理化" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">理化</button>
+                  <button type="button" data-sub="地球科學" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">地球科學</button>
+                  <button type="button" data-sub="綜合自然" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">綜合自然</button>
+                </div>
+              </div>
+
+              <!-- 五、 藝術與科技領域（5 門） -->
+              <div>
+                <div class="text-[10px] font-extrabold text-purple-700 mb-1 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> 五、 藝術與科技領域（5 門）
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <button type="button" data-sub="音樂" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">音樂</button>
+                  <button type="button" data-sub="視覺藝術" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">視覺藝術</button>
+                  <button type="button" data-sub="表演藝術" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">表演藝術</button>
+                  <button type="button" data-sub="資訊科技" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">資訊科技</button>
+                  <button type="button" data-sub="生活科技" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">生活科技</button>
+                </div>
+              </div>
+
+              <!-- 六、 健康與體育、綜合活動領域（5 門） -->
+              <div>
+                <div class="text-[10px] font-extrabold text-rose-700 mb-1 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> 六、 健康與體育、綜合活動領域（5 門）
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <button type="button" data-sub="健康教育" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">健康教育</button>
+                  <button type="button" data-sub="體育" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">體育</button>
+                  <button type="button" data-sub="家政" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">家政</button>
+                  <button type="button" data-sub="童軍" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">童軍</button>
+                  <button type="button" data-sub="輔導" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer">輔導</button>
+                </div>
               </div>
             </div>
           </div>
@@ -841,7 +973,46 @@
           </select>
         </div>
 
-        <!-- Direct Links -->
+        <!-- 3. Report Error / External Google Form -->
+        <div class="pt-4 border-t border-slate-100">
+          <span class="block text-xs font-bold text-slate-500 uppercase mb-2">意見反應與協助</span>
+          <a
+            href="https://docs.google.com/forms/d/19BPzX6vMrSnvW3j2s4OOvaiP3p1gS8auGbRt3f9aFkM/edit"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-indigo-50/70 hover:bg-indigo-100/70 border border-indigo-100 text-indigo-900 transition-all group"
+          >
+            <div class="flex items-center gap-2.5">
+              <i class="fa-solid fa-comment-dots text-indigo-600"></i>
+              <span class="text-sm font-bold">回報系統問題 / 提供建議</span>
+            </div>
+            <i class="fa-solid fa-arrow-up-right-from-square text-xs text-indigo-500 group-hover:translate-x-0.5 transition-transform"></i>
+          </a>
+        </div>
+
+        <!-- 4. PWA 一鍵下載安裝至桌面 / 手機主畫面 -->
+        <div class="pt-4 border-t border-slate-100">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-slate-500 uppercase">安裝應用程式 (PWA)</span>
+            <span id="pwa-install-badge" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800">可一鍵安裝</span>
+          </div>
+          <button
+            id="btn-pwa-install"
+            type="button"
+            class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-xs sm:text-sm shadow-md shadow-emerald-600/20 transition-all cursor-pointer group"
+          >
+            <div class="flex items-center gap-2.5">
+              <i class="fa-solid fa-download text-emerald-200 text-base group-hover:scale-110 transition-transform"></i>
+              <span id="pwa-install-btn-text">一鍵下載安裝至桌面 / 手機主畫面</span>
+            </div>
+            <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-0.5 transition-transform"></i>
+          </button>
+          <p class="text-[11px] text-slate-400 font-medium mt-1.5 leading-relaxed">
+            ※ 支援電腦 (Chrome/Edge) 與手機 (iOS Safari / Android Chrome) 一鍵安裝，離線秒開更便利！
+          </p>
+        </div>
+
+        <!-- 5. Class Navigation & Switch -->
         <div class="pt-3 border-t border-slate-100 space-y-2">
           <a href="https://ian1021228.github.io/ian_homework_checker2.0_online_parent_dashboard/" class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 font-bold text-xs transition-colors">
             <span class="flex items-center gap-2">
@@ -861,6 +1032,111 @@
       <div class="px-6 py-3 border-t border-slate-100 flex justify-end gap-2 bg-slate-50/50 flex-shrink-0">
         <button id="save-settings-btn" type="button" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 cursor-pointer">
           確認儲存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔑 自訂家長查核密碼彈窗 (In-App PIN Modal - 不使用瀏覽器預設 prompt) -->
+  <div id="modal-edit-pin" class="fixed inset-0 z-[105] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-all duration-300">
+    <div class="relative w-full max-w-sm bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg border border-amber-100">
+            <i class="fa-solid fa-key"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-slate-900">修改家長查核密碼</h3>
+            <p class="text-[11px] text-slate-400">家長端輸入此密碼方可查核成績</p>
+          </div>
+        </div>
+        <button id="btn-close-pin-modal" type="button" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors cursor-pointer">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <p class="text-xs text-slate-600 leading-relaxed">
+          請設定學生個人 6 位數專屬密碼（6 位數字）：
+        </p>
+        <div class="relative">
+          <input
+            type="text"
+            id="input-inapp-custom-pin"
+            class="w-full text-center font-mono tracking-widest text-2xl font-extrabold py-3 px-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all placeholder:text-slate-300 placeholder:text-base placeholder:tracking-normal placeholder:font-normal"
+            placeholder="例如：100012"
+            maxlength="6"
+            inputmode="numeric"
+            autocomplete="off"
+          />
+        </div>
+        <div id="pin-modal-error-box" class="hidden p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+          <i class="fa-solid fa-circle-exclamation text-rose-500 flex-shrink-0"></i>
+          <span id="pin-modal-error-msg">密碼必須為 6 位純數字！</span>
+        </div>
+      </div>
+
+      <div class="flex gap-2.5 pt-2">
+        <button id="btn-cancel-inapp-pin" type="button" class="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs sm:text-sm hover:bg-slate-100 transition-colors cursor-pointer">
+          取消
+        </button>
+        <button id="btn-save-inapp-pin" type="button" class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-500/20 transition-all cursor-pointer">
+          儲存密碼
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ❓ 網頁內客製化確認彈窗 (In-App Confirm Modal - 不使用瀏覽器預設 confirm) -->
+  <div id="inapp-confirm-modal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-all duration-300">
+    <div class="relative w-full max-w-sm bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 text-center space-y-4">
+      <div class="w-14 h-14 rounded-3xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl mx-auto border border-amber-100 shadow-xs" id="confirm-modal-icon-container">
+        <i class="fa-solid fa-triangle-exclamation" id="confirm-modal-icon"></i>
+      </div>
+      <div>
+        <h3 id="confirm-modal-title" class="text-base sm:text-lg font-black text-slate-900">確認提示</h3>
+        <p id="confirm-modal-message" class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">請確認是否繼續執行。</p>
+      </div>
+      <div class="flex gap-2.5 pt-2">
+        <button id="confirm-modal-cancel-btn" type="button" class="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs sm:text-sm hover:bg-slate-100 transition-colors cursor-pointer">
+          取消
+        </button>
+        <button id="confirm-modal-ok-btn" type="button" class="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-rose-500/20 transition-all cursor-pointer">
+          確定執行
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📱 iOS PWA 安裝指引彈窗 (In-App iOS Installation Guide Modal) -->
+  <div id="modal-ios-pwa-guide" class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-all duration-300">
+    <div class="relative w-full max-w-sm bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-brands fa-apple text-slate-800 text-lg"></i>
+          <span>iPhone / iPad 安裝至主畫面</span>
+        </h3>
+        <button id="close-ios-pwa-guide-btn" type="button" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs sm:text-sm text-slate-600 leading-relaxed">
+        <div class="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+          <span class="w-6 h-6 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0">1</span>
+          <div>點擊 Safari 瀏覽器底部的 <b>「分享」</b> 按鈕（<i class="fa-solid fa-arrow-up-from-bracket text-emerald-600"></i>）。</div>
+        </div>
+        <div class="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+          <span class="w-6 h-6 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0">2</span>
+          <div>向下捲動選單，點選 <b>「加入主畫面」</b>（<i class="fa-regular fa-square-plus text-emerald-600"></i>）。</div>
+        </div>
+        <div class="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+          <span class="w-6 h-6 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0">3</span>
+          <div>點選右上角的 <b>「新增」</b>，即可在手機桌面看見專屬 App 圖示秒開使用！</div>
+        </div>
+      </div>
+      <div class="pt-2">
+        <button id="confirm-ios-pwa-guide-btn" type="button" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-emerald-600/20 transition-all cursor-pointer">
+          我知道了
         </button>
       </div>
     </div>
@@ -964,6 +1240,19 @@
       studentHomeworkList: document.getElementById("student-homework-list"),
 
       // Scores Tab & Analytics
+      studentScoresUnconfiguredView: document.getElementById("student-scores-unconfigured-view"),
+      unconfiguredSeatNumber: document.getElementById("unconfigured-seat-number"),
+      studentScoresLockedView: document.getElementById("student-scores-locked-view"),
+      lockedSeatNumber: document.getElementById("locked-seat-number"),
+      studentPinVerifyDesc: document.getElementById("student-pin-verify-desc"),
+      studentPinAuthForm: document.getElementById("student-pin-auth-form"),
+      inputStudentAuthPin: document.getElementById("input-student-auth-pin"),
+      btnToggleStudentAuthPin: document.getElementById("btn-toggle-student-auth-pin"),
+      iconStudentPinEye: document.getElementById("icon-student-pin-eye"),
+      studentPinErrorBox: document.getElementById("student-pin-error-box"),
+      studentPinErrorMsg: document.getElementById("student-pin-error-msg"),
+      studentScoresUnlockedView: document.getElementById("student-scores-unlocked-view"),
+      btnRelockScores: document.getElementById("btn-relock-scores"),
       btnOpenAddScore: document.getElementById("btn-open-add-score"),
       scoresCountBadge: document.getElementById("scores-count-badge"),
       studentScoresList: document.getElementById("student-scores-list"),
@@ -1016,6 +1305,21 @@
       modalSeatSelect: document.getElementById("modal-seat-select"),
       switchClassModalBtn: document.getElementById("switch-class-modal-btn"),
       saveSettingsBtn: document.getElementById("save-settings-btn"),
+
+      // Subject Picker Collapsible Elements
+      btnToggleDetailedSubjects: document.getElementById("btn-toggle-detailed-subjects"),
+      textToggleDetailedSubjects: document.getElementById("text-toggle-detailed-subjects"),
+      iconToggleDetailedSubjects: document.getElementById("icon-toggle-detailed-subjects"),
+      detailedSubjectPickerContainer: document.getElementById("detailed-subject-picker-container"),
+      btnCloseDetailedSubjects: document.getElementById("btn-close-detailed-subjects"),
+
+      // PWA Elements
+      btnPwaInstall: document.getElementById("btn-pwa-install"),
+      pwaInstallBadge: document.getElementById("pwa-install-badge"),
+      pwaInstallBtnText: document.getElementById("pwa-install-btn-text"),
+      modalIosPwaGuide: document.getElementById("modal-ios-pwa-guide"),
+      closeIosPwaGuideBtn: document.getElementById("close-ios-pwa-guide-btn"),
+      confirmIosPwaGuideBtn: document.getElementById("confirm-ios-pwa-guide-btn"),
 
       toastContainer: document.getElementById("toast-container")
     };
@@ -1373,7 +1677,7 @@
       if (!state.accessCode || !state.studentSeat) return;
       try {
         const key = LS_PARENT_PIN_PREFIX + state.accessCode + "_" + state.studentSeat;
-        const currentPin = state.parentPin || localStorage.getItem(key) || String(1000 + Number(state.studentSeat));
+        const currentPin = state.parentPin || getTeacherConfiguredPin(state.studentSeat) || localStorage.getItem(key) || String(100000 + Number(state.studentSeat));
         state.parentPin = currentPin;
 
         const studentDocId = `studentScores_${state.accessCode}_seat${state.studentSeat}`;
@@ -1432,39 +1736,187 @@
       } catch (e) {}
     }
 
-    function ensureStudentPin() {
-      if (!state.accessCode || !state.studentSeat) return;
-      const key = LS_PARENT_PIN_PREFIX + state.accessCode + "_" + state.studentSeat;
-      let pin = localStorage.getItem(key);
-      if (!pin) {
-        pin = String(1000 + Number(state.studentSeat));
-        localStorage.setItem(key, pin);
+    function getTeacherConfiguredPin(seat) {
+      if (!state.classData) return null;
+      const s = String(seat || state.studentSeat);
+      if (state.classData.studentPins && state.classData.studentPins[s]) {
+        return String(state.classData.studentPins[s]).trim();
       }
-      state.parentPin = pin;
-      if (elements.displayParentPin) {
-        elements.displayParentPin.textContent = pin;
-      }
-      syncScoresToCloud();
+      return null;
     }
 
-    function promptEditPin() {
-      const currentPin = state.parentPin || "未設定";
-      const newPin = prompt(`請自訂或修改家長查核專屬密碼 (4~6 位數字或英數)：\n目前密碼為：${currentPin}\n家長端輸入此密碼後方可查核您的成績與個人聯絡簿`, currentPin === "未設定" ? "" : currentPin);
-      if (newPin !== null) {
-        const cleanPin = newPin.trim();
-        if (cleanPin.length >= 3 && cleanPin.length <= 10) {
-          state.parentPin = cleanPin;
-          const key = LS_PARENT_PIN_PREFIX + state.accessCode + "_" + state.studentSeat;
-          localStorage.setItem(key, cleanPin);
-          if (elements.displayParentPin) {
-            elements.displayParentPin.textContent = cleanPin;
-          }
-          syncScoresToCloud();
-          showToast(`家長查核密碼已成功設定為：${cleanPin}！`, "success");
-        } else {
-          showToast("密碼長度需在 3~10 位之間，請重試！", "error");
+    function checkStudentScoresAuth() {
+      if (!state.accessCode || !state.studentSeat) return false;
+      const seat = String(state.studentSeat);
+      const teacherPin = getTeacherConfiguredPin(seat);
+
+      // Case 1: 導師尚未開通 PIN 碼
+      if (!teacherPin) {
+        if (elements.studentScoresUnconfiguredView) elements.studentScoresUnconfiguredView.classList.remove('hidden');
+        if (elements.studentScoresLockedView) elements.studentScoresLockedView.classList.add('hidden');
+        if (elements.studentScoresUnlockedView) elements.studentScoresUnlockedView.classList.add('hidden');
+        if (elements.unconfiguredSeatNumber) elements.unconfiguredSeatNumber.textContent = seat;
+        if (elements.displayParentPin) elements.displayParentPin.textContent = "導師未開通";
+        return false;
+      }
+
+      // 導師已設定 PIN 碼
+      state.parentPin = teacherPin;
+      if (elements.displayParentPin) elements.displayParentPin.textContent = teacherPin;
+
+      // 檢查本機驗證憑證 (LocalStorage)
+      const authKey = "student_auth_verified_" + state.accessCode + "_" + seat;
+      const pinKey = "student_auth_pin_" + state.accessCode + "_" + seat;
+      const isVerified = localStorage.getItem(authKey) === "true";
+      const storedPin = localStorage.getItem(pinKey);
+
+      // Case 2: 本機已驗證過且密碼相符 -> 本機免密直開！
+      if (isVerified && storedPin === teacherPin) {
+        if (elements.studentScoresUnconfiguredView) elements.studentScoresUnconfiguredView.classList.add('hidden');
+        if (elements.studentScoresLockedView) elements.studentScoresLockedView.classList.add('hidden');
+        if (elements.studentScoresUnlockedView) elements.studentScoresUnlockedView.classList.remove('hidden');
+        return true;
+      }
+
+      // Case 3: 尚未驗證（首次存取或切換座號跨座號防窺）
+      if (elements.studentScoresUnconfiguredView) elements.studentScoresUnconfiguredView.classList.add('hidden');
+      if (elements.studentScoresLockedView) elements.studentScoresLockedView.classList.remove('hidden');
+      if (elements.studentScoresUnlockedView) elements.studentScoresUnlockedView.classList.add('hidden');
+      if (elements.lockedSeatNumber) elements.lockedSeatNumber.textContent = seat;
+      if (elements.studentPinErrorBox) elements.studentPinErrorBox.classList.add('hidden');
+      if (elements.inputStudentAuthPin) elements.inputStudentAuthPin.value = '';
+
+      return false;
+    }
+
+    function ensureStudentPin() {
+      if (!state.accessCode || !state.studentSeat) return;
+      const teacherPin = getTeacherConfiguredPin(state.studentSeat);
+      if (teacherPin) {
+        state.parentPin = teacherPin;
+        if (elements.displayParentPin) {
+          elements.displayParentPin.textContent = teacherPin;
+        }
+      } else {
+        if (elements.displayParentPin) {
+          elements.displayParentPin.textContent = "導師未開通";
         }
       }
+      checkStudentScoresAuth();
+    }
+
+    function openEditPinModal() {
+      // 學生修改密碼前必須通過驗證
+      if (!checkStudentScoresAuth()) {
+        showToast("🔒 請先輸入當前 6 位數專屬密碼解鎖後，方可自訂修改密碼！", "warning");
+        elements.inputStudentAuthPin?.focus();
+        return;
+      }
+      const modal = document.getElementById("modal-edit-pin");
+      const input = document.getElementById("input-inapp-custom-pin");
+      const errorBox = document.getElementById("pin-modal-error-box");
+      if (!modal) return;
+      if (input) input.value = state.parentPin || "";
+      if (errorBox) errorBox.classList.add("hidden");
+      modal.classList.remove("hidden");
+      if (input) {
+        setTimeout(() => {
+          input.focus();
+          input.select();
+        }, 100);
+      }
+    }
+
+    function closeEditPinModal() {
+      const modal = document.getElementById("modal-edit-pin");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function saveInAppPin() {
+      const input = document.getElementById("input-inapp-custom-pin");
+      const errorBox = document.getElementById("pin-modal-error-box");
+      const errorMsg = document.getElementById("pin-modal-error-msg");
+      if (!input) return;
+      const cleanPin = input.value.trim();
+      if (/^\d{6}$/.test(cleanPin)) {
+        state.parentPin = cleanPin;
+        const key = LS_PARENT_PIN_PREFIX + state.accessCode + "_" + state.studentSeat;
+        localStorage.setItem(key, cleanPin);
+
+        // Also update local auth credential
+        const authKey = "student_auth_verified_" + state.accessCode + "_" + state.studentSeat;
+        const pinKey = "student_auth_pin_" + state.accessCode + "_" + state.studentSeat;
+        localStorage.setItem(authKey, "true");
+        localStorage.setItem(pinKey, cleanPin);
+
+        if (elements.displayParentPin) {
+          elements.displayParentPin.textContent = cleanPin;
+        }
+        syncScoresToCloud();
+        closeEditPinModal();
+        showToast(`🎉 6 位數專屬密碼已成功設定為：${cleanPin}！`, "success");
+        checkStudentScoresAuth();
+      } else {
+        if (errorBox) {
+          errorBox.classList.remove("hidden");
+          if (errorMsg) errorMsg.textContent = "密碼必須為 6 位純數字，請重新輸入！";
+        }
+      }
+    }
+
+
+    function showInAppConfirm({ title, message, confirmText = "確定", cancelText = "取消", isDanger = false, onConfirm }) {
+      const modal = document.getElementById("inapp-confirm-modal");
+      const titleEl = document.getElementById("confirm-modal-title");
+      const msgEl = document.getElementById("confirm-modal-message");
+      const okBtn = document.getElementById("confirm-modal-ok-btn");
+      const cancelBtn = document.getElementById("confirm-modal-cancel-btn");
+      const iconContainer = document.getElementById("confirm-modal-icon-container");
+      const iconEl = document.getElementById("confirm-modal-icon");
+
+      if (!modal) {
+        if (onConfirm) onConfirm();
+        return;
+      }
+
+      if (titleEl) titleEl.textContent = title || "確認提示";
+      if (msgEl) msgEl.textContent = message || "確定要繼續嗎？";
+      if (okBtn) {
+        okBtn.textContent = confirmText;
+        okBtn.className = isDanger
+          ? "flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-rose-500/20 transition-all cursor-pointer"
+          : "flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-500/20 transition-all cursor-pointer";
+      }
+      if (cancelBtn) cancelBtn.textContent = cancelText;
+
+      if (iconContainer && iconEl) {
+        if (isDanger) {
+          iconContainer.className = "w-14 h-14 rounded-3xl bg-rose-50 text-rose-600 flex items-center justify-center text-2xl mx-auto border border-rose-100 shadow-xs";
+          iconEl.className = "fa-solid fa-triangle-exclamation text-rose-600";
+        } else {
+          iconContainer.className = "w-14 h-14 rounded-3xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl mx-auto border border-indigo-100 shadow-xs";
+          iconEl.className = "fa-solid fa-circle-question text-indigo-600";
+        }
+      }
+
+      const cleanup = () => {
+        modal.classList.add("hidden");
+        okBtn.removeEventListener("click", handleOk);
+        cancelBtn.removeEventListener("click", handleCancel);
+      };
+
+      const handleOk = () => {
+        cleanup();
+        if (onConfirm) onConfirm();
+      };
+
+      const handleCancel = () => {
+        cleanup();
+      };
+
+      okBtn.addEventListener("click", handleOk);
+      cancelBtn.addEventListener("click", handleCancel);
+      modal.classList.remove("hidden");
     }
 
     // ==========================================
@@ -1703,17 +2155,19 @@
     }
 
     // ==========================================
-    // DOMAINS & SUBJECT DEFINITIONS (19 門臺灣課綱學科)
+    // DOMAINS & SUBJECT DEFINITIONS (21 門臺灣課綱學科)
     // ==========================================
     const DOMAINS_CONFIG = [
-      { id: "lang-math", name: "語文與數學", color: "bg-indigo-500", subjects: ["國語文", "英語文", "數學"] },
-      { id: "social", name: "社會領域", color: "bg-amber-500", subjects: ["歷史", "地理", "公民與社會"] },
-      { id: "nature", name: "自然科學", color: "bg-emerald-500", subjects: ["生物", "理化", "地球科學"] },
+      { id: "lang", name: "語文領域", color: "bg-indigo-500", subjects: ["國語文", "英語文"] },
+      { id: "math", name: "數學領域", color: "bg-blue-500", subjects: ["數學"] },
+      { id: "social", name: "社會領域", color: "bg-amber-500", subjects: ["歷史", "地理", "公民與社會", "綜合社會"] },
+      { id: "nature", name: "自然科學", color: "bg-emerald-500", subjects: ["生物", "理化", "地球科學", "綜合自然"] },
       { id: "arts-tech", name: "藝術與科技", color: "bg-purple-500", subjects: ["音樂", "視覺藝術", "表演藝術", "資訊科技", "生活科技"] },
       { id: "health-comp", name: "健體與綜合活動", color: "bg-rose-500", subjects: ["健康教育", "體育", "家政", "童軍", "輔導"] }
     ];
 
-    const ALL_19_SUBJECTS = DOMAINS_CONFIG.flatMap(d => d.subjects);
+    const ALL_21_SUBJECTS = DOMAINS_CONFIG.flatMap(d => d.subjects);
+    const ALL_19_SUBJECTS = ALL_21_SUBJECTS; // Alias for backward compatibility
     let activeDomainFilter = "all";
 
     // ==========================================
@@ -2092,13 +2546,19 @@
       elements.studentScoresList.querySelectorAll('.btn-del-score').forEach(btn => {
         btn.addEventListener('click', () => {
           const id = btn.getAttribute('data-id');
-          if (confirm("確定要刪除這筆成績紀錄嗎？")) {
-            state.scores = state.scores.filter(s => s.id !== id);
-            saveLocalState();
-            renderScoresSection();
-            syncScoresToCloud();
-            showToast("已刪除成績紀錄", "info");
-          }
+          showInAppConfirm({
+            title: "刪除成績紀錄",
+            message: "確定要刪除這筆小考成績紀錄嗎？刪除後無法復原。",
+            confirmText: "確定刪除",
+            isDanger: true,
+            onConfirm: () => {
+              state.scores = state.scores.filter(s => s.id !== id);
+              saveLocalState();
+              renderScoresSection();
+              syncScoresToCloud();
+              showToast("已刪除成績紀錄", "info");
+            }
+          });
         });
       });
 
@@ -2425,23 +2885,180 @@
       });
 
       elements.switchClassModalBtn.addEventListener("click", () => {
-        if (confirm("確定要切換到其他班級代碼嗎？")) {
-          localStorage.removeItem(LS_ACCESS_CODE_KEY);
-          localStorage.removeItem(LS_STUDENT_SEAT_KEY);
-          state.accessCode = "";
-          state.studentSeat = null;
-          state.classData = null;
-          elements.settingsModal.classList.add("hidden");
-          const url = new URL(window.location);
-          url.searchParams.delete("code");
-          url.searchParams.delete("seat");
-          window.history.replaceState({}, "", url);
-          showLoginView();
+        showInAppConfirm({
+          title: "退出班級確認",
+          message: "確定要切換到其他班級代碼嗎？更換後需重新輸入新班級代碼。",
+          confirmText: "確定退出",
+          isDanger: true,
+          onConfirm: () => {
+            localStorage.removeItem(LS_ACCESS_CODE_KEY);
+            localStorage.removeItem(LS_STUDENT_SEAT_KEY);
+            state.accessCode = "";
+            state.studentSeat = null;
+            state.classData = null;
+            elements.settingsModal.classList.add("hidden");
+            const url = new URL(window.location);
+            url.searchParams.delete("code");
+            url.searchParams.delete("seat");
+            window.history.replaceState({}, "", url);
+            showLoginView();
+          }
+        });
+      });
+
+      // Subject Collapsible Toggle
+      function toggleDetailedSubjects() {
+        const container = elements.detailedSubjectPickerContainer;
+        const text = elements.textToggleDetailedSubjects;
+        const icon = elements.iconToggleDetailedSubjects;
+        if (!container) return;
+        const isHidden = container.classList.contains("hidden");
+        if (isHidden) {
+          container.classList.remove("hidden");
+          if (text) text.textContent = "收合 21 門詳細分類";
+          if (icon) icon.className = "fa-solid fa-chevron-up text-[10px] transition-transform";
+        } else {
+          container.classList.add("hidden");
+          if (text) text.textContent = "展開 21 門詳細分類";
+          if (icon) icon.className = "fa-solid fa-chevron-down text-[10px] transition-transform";
+        }
+      }
+      elements.btnToggleDetailedSubjects?.addEventListener("click", toggleDetailedSubjects);
+      elements.btnCloseDetailedSubjects?.addEventListener("click", toggleDetailedSubjects);
+
+      // PWA Installation & Service Worker Registration
+      let deferredInstallPrompt = null;
+
+      function updatePwaInstallState() {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        if (isStandalone) {
+          if (elements.pwaInstallBadge) {
+            elements.pwaInstallBadge.textContent = "已安裝為桌面 App";
+            elements.pwaInstallBadge.className = "px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800";
+            elements.pwaInstallBadge.classList.remove("hidden");
+          }
+          if (elements.pwaInstallBtnText) {
+            elements.pwaInstallBtnText.textContent = "✅ 已安裝為桌面 App（可離線使用）";
+          }
+        }
+      }
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        if (elements.pwaInstallBadge) {
+          elements.pwaInstallBadge.textContent = "可一鍵安裝";
+          elements.pwaInstallBadge.classList.remove("hidden");
         }
       });
 
+      window.addEventListener('appinstalled', () => {
+        deferredInstallPrompt = null;
+        updatePwaInstallState();
+        showToast("🎉 恭喜！學生數位聯絡簿已成功安裝至您的桌面/主畫面", "success");
+      });
+
+      const isIos = () => {
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        return /iphone|ipad|ipod/.test(userAgent);
+      };
+
+      if (elements.btnPwaInstall) {
+        elements.btnPwaInstall.addEventListener("click", async () => {
+          const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+          if (isStandalone) {
+            showToast("您目前已在使用桌面 App 模式！", "info");
+            return;
+          }
+
+          if (deferredInstallPrompt) {
+            deferredInstallPrompt.prompt();
+            const { outcome } = await deferredInstallPrompt.userChoice;
+            if (outcome === 'accepted') {
+              showToast("🎉 感謝安裝！已將學生數位聯絡簿新增至主畫面", "success");
+            }
+            deferredInstallPrompt = null;
+          } else if (isIos()) {
+            elements.modalIosPwaGuide?.classList.remove("hidden");
+          } else {
+            showInAppConfirm({
+              title: "📱 安裝為桌面應用程式 (PWA)",
+              message: "若瀏覽器未自動彈出安裝視窗，請點選瀏覽器網址列右側的「安裝」圖示，或至瀏覽器右上角選單點選「安裝學生數位聯絡簿」/「加到主畫面」即可完成！",
+              confirmText: "我知道了",
+              onConfirm: () => {}
+            });
+          }
+        });
+      }
+
+      elements.closeIosPwaGuideBtn?.addEventListener("click", () => elements.modalIosPwaGuide?.classList.add("hidden"));
+      elements.confirmIosPwaGuideBtn?.addEventListener("click", () => elements.modalIosPwaGuide?.classList.add("hidden"));
+
+      // Register SW
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW register failed:', err));
+        });
+      }
+
+      updatePwaInstallState();
+
+      // Student Scores Auth Form Submit
+      if (elements.studentPinAuthForm) {
+        elements.studentPinAuthForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const inputPin = elements.inputStudentAuthPin.value.trim();
+          const teacherPin = getTeacherConfiguredPin(state.studentSeat);
+
+          if (inputPin === teacherPin) {
+            const authKey = "student_auth_verified_" + state.accessCode + "_" + state.studentSeat;
+            const pinKey = "student_auth_pin_" + state.accessCode + "_" + state.studentSeat;
+            localStorage.setItem(authKey, "true");
+            localStorage.setItem(pinKey, inputPin);
+            state.parentPin = inputPin;
+
+            elements.studentPinErrorBox.classList.add('hidden');
+            elements.studentScoresLockedView.classList.add('hidden');
+            elements.studentScoresUnlockedView.classList.remove('hidden');
+
+            showToast("🎉 驗證成功！此裝置已完成安全綁定，日後免密直開。", "success");
+            renderScoresSection();
+          } else {
+            elements.studentPinErrorBox.classList.remove('hidden');
+            elements.studentPinErrorMsg.textContent = "密碼不正確！若忘記密碼，請聯繫導師在教師端一鍵重設。";
+            elements.inputStudentAuthPin.focus();
+          }
+        });
+      }
+
+      // Toggle PIN visibility
+      if (elements.btnToggleStudentAuthPin) {
+        elements.btnToggleStudentAuthPin.addEventListener("click", () => {
+          const isPass = elements.inputStudentAuthPin.type === "password";
+          elements.inputStudentAuthPin.type = isPass ? "text" : "password";
+          elements.iconStudentPinEye.className = isPass ? "fa-regular fa-eye-slash text-sm" : "fa-regular fa-eye text-sm";
+        });
+      }
+
+      // Relock scores button
+      if (elements.btnRelockScores) {
+        elements.btnRelockScores.addEventListener("click", () => {
+          const authKey = "student_auth_verified_" + state.accessCode + "_" + state.studentSeat;
+          localStorage.removeItem(authKey);
+          checkStudentScoresAuth();
+          showToast("已重新上鎖成績系統（防窺保護模式）", "info");
+        });
+      }
+
       // Score Modal Buttons
-      elements.btnOpenAddScore.addEventListener("click", () => openScoreModal(null));
+      elements.btnOpenAddScore.addEventListener("click", () => {
+        if (!checkStudentScoresAuth()) {
+          showToast("🔒 請先驗證 6 位數專屬密碼解鎖成績系統！", "warning");
+          elements.inputStudentAuthPin?.focus();
+          return;
+        }
+        openScoreModal(null);
+      });
       elements.closeScoreModalBtn.addEventListener("click", closeScoreModal);
       elements.cancelScoreModalBtn.addEventListener("click", closeScoreModal);
       elements.saveScoreModalBtn.addEventListener("click", saveScoreFromModal);
@@ -2500,7 +3117,11 @@
       });
 
       elements.btnSaveMoodJournal.addEventListener("click", saveMoodJournal);
-      elements.btnEditPin?.addEventListener("click", promptEditPin);
+      // PIN Edit In-App Modal Bindings
+      elements.btnEditPin?.addEventListener("click", openEditPinModal);
+      document.getElementById('btn-save-inapp-pin')?.addEventListener('click', saveInAppPin);
+      document.getElementById('btn-cancel-inapp-pin')?.addEventListener('click', closeEditPinModal);
+      document.getElementById('btn-close-pin-modal')?.addEventListener('click', closeEditPinModal);
     }
 
     function switchTab(tabName) {
@@ -2520,6 +3141,10 @@
           t.btn.className = "flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2 cursor-pointer";
         }
       });
+
+      if (tabName === "scores") {
+        checkStudentScoresAuth();
+      }
     }
 
     // Run on start
