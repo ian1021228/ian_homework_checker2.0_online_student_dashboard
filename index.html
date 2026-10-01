@@ -364,17 +364,19 @@
         </div>
 
         <!-- ============================================== -->
-        <!-- TAB 2: SCORE TRACKER (小考成績登記與管理)     -->
+        <!-- TAB 2: TEST SCORES TRACKER & LEARNING ANALYTICS -->
         <!-- ============================================== -->
         <div id="panel-scores" class="space-y-5 hidden">
           <!-- Add Score Action Bar -->
           <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <i class="fa-solid fa-award text-amber-500"></i>
-                <span>今日測驗與成績填寫</span>
-              </h3>
-              <p class="text-xs text-slate-400 mt-0.5">紀錄今日各科小考、聽寫或隨堂練習成績，方便自我檢視與家長查核</p>
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                  <i class="fa-solid fa-award text-sm"></i>
+                </span>
+                <h3 class="text-base font-extrabold text-slate-900">成績登記與自主學習分析</h3>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">登記平時測驗小考、分析 19 門領域學科表現、掌握歷史進步走勢</p>
             </div>
 
             <button
@@ -387,18 +389,123 @@
             </button>
           </div>
 
-          <!-- Score Cards Container -->
-          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <!-- Overall KPI Metrics Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs text-center">
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">累計測驗次數</span>
+              <span id="stat-total-tests-count" class="text-2xl font-black text-slate-900">0</span>
+              <span class="text-[10px] text-slate-400 block mt-0.5" id="stat-today-tests-sub">今日 0 筆</span>
+            </div>
+            <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs text-center">
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">歷次總平均</span>
+              <span id="stat-overall-avg" class="text-2xl font-black text-emerald-600">--</span>
+              <span class="text-[10px] font-bold text-emerald-700 block mt-0.5" id="stat-overall-grade">尚無紀錄</span>
+            </div>
+            <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs text-center">
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">最高成績紀錄</span>
+              <span id="stat-highest-score" class="text-2xl font-black text-indigo-600">--</span>
+              <span class="text-[10px] text-slate-400 block mt-0.5 truncate" id="stat-highest-subject">--</span>
+            </div>
+            <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs text-center">
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">訂正完成率</span>
+              <span id="stat-correction-rate" class="text-2xl font-black text-teal-600">--%</span>
+              <span class="text-[10px] text-slate-400 block mt-0.5" id="stat-correction-sub">0 筆待訂正</span>
+            </div>
+          </div>
+
+          <!-- Progress Trend Card (SVG Visualizer) -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">今日成績紀錄</span>
-                <span id="scores-count-badge" class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-extrabold text-xs">0 筆測驗</span>
+                <span class="w-7 h-7 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold">
+                  <i class="fa-solid fa-chart-line"></i>
+                </span>
+                <div>
+                  <h4 class="text-sm font-extrabold text-slate-900">學期成績進步趨勢走勢圖</h4>
+                  <p class="text-[11px] text-slate-400">歷次測驗分數起伏與進退步軌跡</p>
+                </div>
               </div>
-              <div class="text-xs text-slate-500 font-bold" id="scores-avg-display">
-                均分：<span class="text-emerald-600 font-extrabold">--</span>
+              <span id="trend-status-badge" class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-slate-100 text-slate-600">
+                暫無足夠趨勢數據
+              </span>
+            </div>
+
+            <!-- SVG Trend Chart Container -->
+            <div id="score-trend-chart-container" class="w-full h-44 sm:h-52 relative flex items-center justify-center bg-slate-50/60 rounded-2xl p-2 border border-slate-100">
+              <!-- Rendered via JS SVG -->
+            </div>
+          </div>
+
+          <!-- 19 Subjects Performance Analytics Card -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <h4 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <i class="fa-solid fa-layer-group text-emerald-600"></i>
+                  <span>19 門領域學科成績深度分析</span>
+                </h4>
+                <p class="text-[11px] text-slate-400 mt-0.5">點擊任一科目可快速過濾該科歷史小考紀錄</p>
+              </div>
+              <!-- Domain Filter Tabs -->
+              <div class="flex items-center gap-1 overflow-x-auto pb-1 custom-scrollbar text-xs font-bold" id="domain-analytics-filter">
+                <button type="button" data-domain="all" class="domain-filter-btn px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-extrabold cursor-pointer">全部學科</button>
+                <button type="button" data-domain="lang-math" class="domain-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">語文與數學</button>
+                <button type="button" data-domain="social" class="domain-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">社會</button>
+                <button type="button" data-domain="nature" class="domain-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">自然</button>
+                <button type="button" data-domain="arts-tech" class="domain-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">藝術與科技</button>
+                <button type="button" data-domain="health-comp" class="domain-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">健體綜合</button>
               </div>
             </div>
 
+            <!-- Subject Analytics List / Cards -->
+            <div id="subject-analytics-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- History Scores Query & List -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">測驗紀錄詳細明細</span>
+                <span id="scores-count-badge" class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-extrabold text-xs">0 筆測驗</span>
+              </div>
+              
+              <!-- Filter Controls Toolbar -->
+              <div class="flex flex-wrap items-center gap-2 text-xs">
+                <!-- Time Range Filter -->
+                <select id="filter-score-range" class="py-1.5 px-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-emerald-500">
+                  <option value="all">全部歷史時間</option>
+                  <option value="today" selected>僅看今日小考</option>
+                  <option value="7days">近 7 天</option>
+                  <option value="30days">近 30 天</option>
+                </select>
+
+                <!-- Subject Filter -->
+                <select id="filter-score-subject" class="py-1.5 px-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-emerald-500">
+                  <option value="all">所有科目</option>
+                  <!-- Populated by JS -->
+                </select>
+
+                <!-- Correction Filter -->
+                <select id="filter-score-correction" class="py-1.5 px-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-emerald-500">
+                  <option value="all">全部訂正狀態</option>
+                  <option value="全對免訂正">✨ 全對免訂正</option>
+                  <option value="已完成訂正">✅ 已完成訂正</option>
+                  <option value="待訂正/需請教">✏️ 待訂正/需請教</option>
+                </select>
+
+                <!-- Sort Order -->
+                <select id="sort-score-order" class="py-1.5 px-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-emerald-500">
+                  <option value="date-desc">日期：新到舊</option>
+                  <option value="date-asc">日期：舊到新</option>
+                  <option value="score-desc">分數：高到低</option>
+                  <option value="score-asc">分數：低到高</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- List Container -->
             <div id="student-scores-list" class="space-y-3">
               <!-- Populated by JS -->
             </div>
@@ -537,21 +644,89 @@
 
         <!-- Subject Selection -->
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">考試科目</label>
-          <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-2" id="subject-picker-group">
-            <button type="button" data-sub="國語" class="sub-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer">國語</button>
-            <button type="button" data-sub="數學" class="sub-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer">數學</button>
-            <button type="button" data-sub="英語" class="sub-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer">英語</button>
-            <button type="button" data-sub="自然" class="sub-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer">自然</button>
-            <button type="button" data-sub="社會" class="sub-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer">社會</button>
-            <button type="button" data-sub="其他" class="sub-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer">其他</button>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">
+              <i class="fa-solid fa-book text-emerald-600 mr-1"></i> 考試科目（點選快速填入或自行輸入）
+            </label>
+            <span class="text-[11px] text-slate-400 font-medium">19 門領域學科</span>
           </div>
-          <input
-            id="input-score-subject"
-            type="text"
-            placeholder="或自訂科目名稱"
-            class="w-full px-3.5 py-2.5 text-sm font-bold text-slate-800 bg-slate-50 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-          >
+
+          <!-- Grouped Subjects Pills Container -->
+          <div class="space-y-2 mb-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-200/80" id="subject-picker-group">
+            <!-- 語文與數學 -->
+            <div>
+              <div class="text-[10px] font-extrabold text-slate-400 mb-1 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> 語文與數學
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" data-sub="國語文" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">國語文</button>
+                <button type="button" data-sub="英語文" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">英語文</button>
+                <button type="button" data-sub="數學" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">數學</button>
+              </div>
+            </div>
+
+            <!-- 社會領域 -->
+            <div>
+              <div class="text-[10px] font-extrabold text-slate-400 mb-1 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> 社會領域
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" data-sub="歷史" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">歷史</button>
+                <button type="button" data-sub="地理" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">地理</button>
+                <button type="button" data-sub="公民與社會" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">公民與社會</button>
+              </div>
+            </div>
+
+            <!-- 自然科學 -->
+            <div>
+              <div class="text-[10px] font-extrabold text-slate-400 mb-1 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 自然科學
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" data-sub="生物" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">生物</button>
+                <button type="button" data-sub="理化" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">理化</button>
+                <button type="button" data-sub="地球科學" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">地球科學</button>
+              </div>
+            </div>
+
+            <!-- 藝術與科技 -->
+            <div>
+              <div class="text-[10px] font-extrabold text-slate-400 mb-1 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> 藝術與科技
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" data-sub="音樂" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">音樂</button>
+                <button type="button" data-sub="視覺藝術" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">視覺藝術</button>
+                <button type="button" data-sub="表演藝術" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">表演藝術</button>
+                <button type="button" data-sub="資訊科技" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">資訊科技</button>
+                <button type="button" data-sub="生活科技" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">生活科技</button>
+              </div>
+            </div>
+
+            <!-- 健體與綜合活動 -->
+            <div>
+              <div class="text-[10px] font-extrabold text-slate-400 mb-1 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> 健體與綜合活動
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" data-sub="健康教育" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">健康教育</button>
+                <button type="button" data-sub="體育" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">體育</button>
+                <button type="button" data-sub="家政" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">家政</button>
+                <button type="button" data-sub="童軍" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">童軍</button>
+                <button type="button" data-sub="輔導" class="sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white transition-all cursor-pointer">輔導</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative">
+            <input
+              id="input-score-subject"
+              type="text"
+              placeholder="已選取科目或輸入自訂科目"
+              required
+              class="w-full px-3.5 py-2.5 text-sm font-bold text-slate-800 bg-slate-50 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+            >
+          </div>
         </div>
 
         <!-- Exam Name -->
@@ -788,11 +963,26 @@
       hwTotalBadge: document.getElementById("hw-total-badge"),
       studentHomeworkList: document.getElementById("student-homework-list"),
 
-      // Scores Tab
+      // Scores Tab & Analytics
       btnOpenAddScore: document.getElementById("btn-open-add-score"),
       scoresCountBadge: document.getElementById("scores-count-badge"),
-      scoresAvgDisplay: document.getElementById("scores-avg-display"),
       studentScoresList: document.getElementById("student-scores-list"),
+      statTotalTestsCount: document.getElementById("stat-total-tests-count"),
+      statTodayTestsSub: document.getElementById("stat-today-tests-sub"),
+      statOverallAvg: document.getElementById("stat-overall-avg"),
+      statOverallGrade: document.getElementById("stat-overall-grade"),
+      statHighestScore: document.getElementById("stat-highest-score"),
+      statHighestSubject: document.getElementById("stat-highest-subject"),
+      statCorrectionRate: document.getElementById("stat-correction-rate"),
+      statCorrectionSub: document.getElementById("stat-correction-sub"),
+      trendStatusBadge: document.getElementById("trend-status-badge"),
+      scoreTrendChartContainer: document.getElementById("score-trend-chart-container"),
+      domainAnalyticsFilter: document.getElementById("domain-analytics-filter"),
+      subjectAnalyticsGrid: document.getElementById("subject-analytics-grid"),
+      filterScoreRange: document.getElementById("filter-score-range"),
+      filterScoreSubject: document.getElementById("filter-score-subject"),
+      filterScoreCorrection: document.getElementById("filter-score-correction"),
+      sortScoreOrder: document.getElementById("sort-score-order"),
 
       // Contact Tab
       selectedDateLabel: document.getElementById("selected-date-label"),
@@ -1182,14 +1372,18 @@
     async function syncScoresToCloud() {
       if (!state.accessCode || !state.studentSeat) return;
       try {
+        const key = LS_PARENT_PIN_PREFIX + state.accessCode + "_" + state.studentSeat;
+        const currentPin = state.parentPin || localStorage.getItem(key) || String(1000 + Number(state.studentSeat));
+        state.parentPin = currentPin;
+
         const studentDocId = `studentScores_${state.accessCode}_seat${state.studentSeat}`;
         const profileDocRef = doc(db, 'artifacts', APP_COLLECTION_ID, 'public', 'data', 'userProfiles', studentDocId);
         await setDoc(profileDocRef, {
           classCode: state.accessCode,
           seat: state.studentSeat,
-          parentPin: state.parentPin || "",
-          scores: state.scores,
-          moodJournal: state.moodJournal,
+          parentPin: currentPin,
+          scores: state.scores || [],
+          moodJournal: state.moodJournal || {},
           updatedAt: new Date().toISOString()
         }, { merge: true });
       } catch (err) {
@@ -1207,13 +1401,17 @@
           const json = await resp.json();
           const cloudData = parseRestDocument(json);
           if (cloudData) {
-            if (cloudData.parentPin) {
-              state.parentPin = cloudData.parentPin;
-              const key = LS_PARENT_PIN_PREFIX + state.accessCode + "_" + state.studentSeat;
-              localStorage.setItem(key, cloudData.parentPin);
+            const key = LS_PARENT_PIN_PREFIX + state.accessCode + "_" + state.studentSeat;
+            if (cloudData.parentPin && String(cloudData.parentPin).trim().length > 0) {
+              const cleanPin = String(cloudData.parentPin).trim();
+              state.parentPin = cleanPin;
+              localStorage.setItem(key, cleanPin);
               if (elements.displayParentPin) {
-                elements.displayParentPin.textContent = cloudData.parentPin;
+                elements.displayParentPin.textContent = cleanPin;
               }
+            } else {
+              // Cloud had empty PIN, immediately push valid local PIN
+              syncScoresToCloud();
             }
             if (Array.isArray(cloudData.scores)) {
               const existingIds = new Set(state.scores.map(s => s.id));
@@ -1239,14 +1437,14 @@
       const key = LS_PARENT_PIN_PREFIX + state.accessCode + "_" + state.studentSeat;
       let pin = localStorage.getItem(key);
       if (!pin) {
-        pin = String(Math.floor(1000 + Math.random() * 9000));
+        pin = String(1000 + Number(state.studentSeat));
         localStorage.setItem(key, pin);
-        syncScoresToCloud();
       }
       state.parentPin = pin;
       if (elements.displayParentPin) {
         elements.displayParentPin.textContent = pin;
       }
+      syncScoresToCloud();
     }
 
     function promptEditPin() {
@@ -1505,39 +1703,327 @@
     }
 
     // ==========================================
-    // MODULE 2: TEST SCORES TRACKER
+    // DOMAINS & SUBJECT DEFINITIONS (19 門臺灣課綱學科)
+    // ==========================================
+    const DOMAINS_CONFIG = [
+      { id: "lang-math", name: "語文與數學", color: "bg-indigo-500", subjects: ["國語文", "英語文", "數學"] },
+      { id: "social", name: "社會領域", color: "bg-amber-500", subjects: ["歷史", "地理", "公民與社會"] },
+      { id: "nature", name: "自然科學", color: "bg-emerald-500", subjects: ["生物", "理化", "地球科學"] },
+      { id: "arts-tech", name: "藝術與科技", color: "bg-purple-500", subjects: ["音樂", "視覺藝術", "表演藝術", "資訊科技", "生活科技"] },
+      { id: "health-comp", name: "健體與綜合活動", color: "bg-rose-500", subjects: ["健康教育", "體育", "家政", "童軍", "輔導"] }
+    ];
+
+    const ALL_19_SUBJECTS = DOMAINS_CONFIG.flatMap(d => d.subjects);
+    let activeDomainFilter = "all";
+
+    // ==========================================
+    // MODULE 2: TEST SCORES TRACKER & ANALYTICS
     // ==========================================
 
-    function renderScoresSection() {
+    function renderScoreTrendChart(scores) {
+      if (!elements.scoreTrendChartContainer) return;
+      if (!scores || scores.length < 2) {
+        elements.scoreTrendChartContainer.innerHTML = `
+          <div class="text-center text-xs text-slate-400 py-6">
+            <i class="fa-solid fa-chart-line text-2xl text-slate-300 block mb-1.5"></i>
+            累積登記 2 筆以上測驗後，即在此繪製個人進步走勢圖
+          </div>
+        `;
+        if (elements.trendStatusBadge) {
+          elements.trendStatusBadge.className = "px-2.5 py-1 rounded-full text-xs font-extrabold bg-slate-100 text-slate-500";
+          elements.trendStatusBadge.textContent = "累積中 (至少 2 筆)";
+        }
+        return;
+      }
+
+      // Sort chronologically ascending
+      const chronological = [...scores].sort((a, b) => (a.date || '').localeCompare(b.date || '') || (parseFloat(a.id?.split('_')?.[1] || 0) - parseFloat(b.id?.split('_')?.[1] || 0)));
+
+      // Trend analysis
+      const n = chronological.length;
+      let trendText = "🎯 穩定發揮中";
+      let trendClass = "bg-indigo-50 text-indigo-700 border border-indigo-200";
+
+      const recentCount = Math.min(3, Math.floor(n / 2) || 1);
+      const recentSlice = chronological.slice(-recentCount);
+      const priorSlice = chronological.slice(-recentCount * 2, -recentCount);
+
+      if (priorSlice.length > 0) {
+        const avgRecent = recentSlice.reduce((s, x) => s + parseFloat(x.score), 0) / recentSlice.length;
+        const avgPrior = priorSlice.reduce((s, x) => s + parseFloat(x.score), 0) / priorSlice.length;
+        const diff = Math.round((avgRecent - avgPrior) * 10) / 10;
+        if (diff >= 3) {
+          trendText = `🔥 持續進步中 (+${diff} 分)`;
+          trendClass = "bg-emerald-50 text-emerald-700 border border-emerald-200";
+        } else if (diff <= -3) {
+          trendText = `⚠️ 略微下滑 (${diff} 分) 需加強`;
+          trendClass = "bg-amber-50 text-amber-700 border border-amber-200";
+        } else {
+          trendText = `🎯 穩定持平 (波動 ${diff >= 0 ? '+' : ''}${diff} 分)`;
+          trendClass = "bg-indigo-50 text-indigo-700 border border-indigo-200";
+        }
+      } else {
+        const lastScore = parseFloat(chronological[n - 1].score);
+        const firstScore = parseFloat(chronological[0].score);
+        const diff = Math.round(lastScore - firstScore);
+        if (diff > 0) {
+          trendText = `📈 較前次進步 (+${diff} 分)`;
+          trendClass = "bg-emerald-50 text-emerald-700 border border-emerald-200";
+        } else if (diff < 0) {
+          trendText = `📉 較前次退步 (${diff} 分)`;
+          trendClass = "bg-amber-50 text-amber-700 border border-amber-200";
+        }
+      }
+
+      if (elements.trendStatusBadge) {
+        elements.trendStatusBadge.className = `px-2.5 py-1 rounded-full text-xs font-extrabold ${trendClass}`;
+        elements.trendStatusBadge.textContent = trendText;
+      }
+
+      // Draw SVG Chart
+      const width = 600;
+      const height = 180;
+      const padLeft = 40;
+      const padRight = 30;
+      const padTop = 25;
+      const padBottom = 35;
+      const chartW = width - padLeft - padRight;
+      const chartH = height - padTop - padBottom;
+
+      const scoreVals = chronological.map(c => parseFloat(c.score) || 0);
+      const minScore = Math.max(0, Math.floor(Math.min(...scoreVals) / 10) * 10 - 10);
+      const maxScore = Math.min(100, Math.ceil(Math.max(...scoreVals) / 10) * 10 + 10);
+      const scoreRange = maxScore - minScore || 20;
+
+      const points = chronological.map((item, idx) => {
+        const x = padLeft + (idx / (chronological.length - 1)) * chartW;
+        const val = parseFloat(item.score) || 0;
+        const y = padTop + chartH - ((val - minScore) / scoreRange) * chartH;
+        return { x, y, item, val };
+      });
+
+      const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+      const areaD = `${pathD} L ${points[points.length - 1].x.toFixed(1)} ${height - padBottom} L ${points[0].x.toFixed(1)} ${height - padBottom} Z`;
+
+      let svgHtml = `
+        <svg viewBox="0 0 ${width} ${height}" class="w-full h-full" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="trendGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#10b981" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
+            </linearGradient>
+          </defs>
+          <!-- Grid Lines -->
+          <line x1="${padLeft}" y1="${padTop}" x2="${width - padRight}" y2="${padTop}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="${padLeft - 6}" y="${padTop + 4}" font-size="10" font-weight="bold" fill="#94a3b8" text-anchor="end">${maxScore}</text>
+
+          <line x1="${padLeft}" y1="${padTop + chartH / 2}" x2="${width - padRight}" y2="${padTop + chartH / 2}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="${padLeft - 6}" y="${padTop + chartH / 2 + 4}" font-size="10" font-weight="bold" fill="#94a3b8" text-anchor="end">${Math.round((maxScore + minScore) / 2)}</text>
+
+          <line x1="${padLeft}" y1="${height - padBottom}" x2="${width - padRight}" y2="${height - padBottom}" stroke="#cbd5e1" stroke-width="1.5"/>
+          <text x="${padLeft - 6}" y="${height - padBottom + 4}" font-size="10" font-weight="bold" fill="#94a3b8" text-anchor="end">${minScore}</text>
+
+          <!-- Gradient Area -->
+          <path d="${areaD}" fill="url(#trendGrad)" />
+
+          <!-- Line -->
+          <path d="${pathD}" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- Points -->
+      `;
+
+      points.forEach((p) => {
+        const item = p.item;
+        const sub = escapeHtml(item.subject);
+        const name = escapeHtml(item.name);
+        const date = escapeHtml(item.date || '');
+        const tooltip = `${date} [${sub}] ${name}：${p.val}分`;
+        svgHtml += `
+          <g class="cursor-pointer group">
+            <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5" fill="#ffffff" stroke="#059669" stroke-width="3"/>
+            <text x="${p.x.toFixed(1)}" y="${(p.y - 10).toFixed(1)}" font-size="11" font-weight="900" fill="#0f172a" text-anchor="middle">${p.val}</text>
+            <text x="${p.x.toFixed(1)}" y="${height - padBottom + 16}" font-size="9" font-weight="bold" fill="#64748b" text-anchor="middle">${date.slice(5)}</text>
+            <title>${tooltip}</title>
+          </g>
+        `;
+      });
+
+      svgHtml += `</svg>`;
+      elements.scoreTrendChartContainer.innerHTML = svgHtml;
+    }
+
+    function renderSubjectAnalytics(scores) {
+      if (!elements.subjectAnalyticsGrid) return;
+
+      const subjectMap = {};
+      scores.forEach(s => {
+        const sub = s.subject || '其他';
+        if (!subjectMap[sub]) {
+          subjectMap[sub] = { subject: sub, scores: [], pendingCorrections: 0 };
+        }
+        subjectMap[sub].scores.push(parseFloat(s.score) || 0);
+        if (s.correction === '待訂正/需請教') {
+          subjectMap[sub].pendingCorrections++;
+        }
+      });
+
+      let subjectsToShow = [...ALL_19_SUBJECTS];
+      if (activeDomainFilter !== 'all') {
+        const dom = DOMAINS_CONFIG.find(d => d.id === activeDomainFilter);
+        if (dom) subjectsToShow = [...dom.subjects];
+      }
+
+      if (activeDomainFilter === 'all') {
+        Object.keys(subjectMap).forEach(sub => {
+          if (!subjectsToShow.includes(sub)) {
+            subjectsToShow.push(sub);
+          }
+        });
+      }
+
+      elements.subjectAnalyticsGrid.innerHTML = subjectsToShow.map(sub => {
+        const data = subjectMap[sub];
+        const count = data ? data.scores.length : 0;
+        const avg = count > 0 ? (data.scores.reduce((a, b) => a + b, 0) / count).toFixed(1) : null;
+        const max = count > 0 ? Math.max(...data.scores) : null;
+        const pending = data ? data.pendingCorrections : 0;
+
+        let domainObj = DOMAINS_CONFIG.find(d => d.subjects.includes(sub));
+        const dotColor = domainObj ? domainObj.color : 'bg-slate-400';
+
+        let avgBadge = avg !== null ? `${avg} 分` : '未登記';
+        let avgColor = 'text-slate-400';
+        let barWidth = avg !== null ? `${Math.min(100, Math.max(0, avg))}%` : '0%';
+        let barColor = 'bg-slate-300';
+
+        if (avg !== null) {
+          if (avg >= 90) {
+            avgColor = 'text-emerald-600';
+            barColor = 'bg-emerald-500';
+          } else if (avg >= 80) {
+            avgColor = 'text-teal-600';
+            barColor = 'bg-teal-500';
+          } else if (avg >= 60) {
+            avgColor = 'text-amber-600';
+            barColor = 'bg-amber-500';
+          } else {
+            avgColor = 'text-rose-600';
+            barColor = 'bg-rose-500';
+          }
+        }
+
+        return `
+          <div
+            data-sub="${escapeHtml(sub)}"
+            class="subject-stat-card p-3.5 rounded-2xl bg-slate-50/70 hover:bg-emerald-50/60 border border-slate-200/70 hover:border-emerald-300 transition-all cursor-pointer group"
+            title="點擊依【${escapeHtml(sub)}】快速篩選歷史成績"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="w-2 h-2 rounded-full ${dotColor} flex-shrink-0"></span>
+                <span class="text-xs font-black text-slate-800 group-hover:text-emerald-700 truncate">${escapeHtml(sub)}</span>
+              </div>
+              <span class="text-xs font-black ${avgColor}">${avgBadge}</span>
+            </div>
+
+            <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden mb-2">
+              <div class="h-full ${barColor} rounded-full transition-all" style="width: ${barWidth}"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-[10px] text-slate-400 font-bold">
+              <span>測驗 ${count} 次 ${max !== null ? `· 最高 ${max}分` : ''}</span>
+              ${pending > 0 ? `<span class="text-rose-600 font-extrabold"><i class="fa-solid fa-pencil mr-0.5"></i>${pending} 待訂正</span>` : `<span class="text-emerald-600">全訂正</span>`}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      elements.subjectAnalyticsGrid.querySelectorAll('.subject-stat-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const sub = card.getAttribute('data-sub');
+          if (elements.filterScoreSubject) {
+            elements.filterScoreSubject.value = sub;
+            renderScoresListOnly();
+            showToast(`已為您篩選【${sub}】測驗成績`, "info");
+            elements.filterScoreSubject.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        });
+      });
+    }
+
+    function populateSubjectFilterOptions(scores) {
+      if (!elements.filterScoreSubject) return;
+      const currentVal = elements.filterScoreSubject.value || "all";
+      const recordedSubs = new Set(scores.map(s => s.subject).filter(Boolean));
+      ALL_19_SUBJECTS.forEach(s => recordedSubs.add(s));
+
+      let html = '<option value="all">所有科目</option>';
+      Array.from(recordedSubs).forEach(sub => {
+        html += `<option value="${escapeHtml(sub)}">${escapeHtml(sub)}</option>`;
+      });
+      elements.filterScoreSubject.innerHTML = html;
+      elements.filterScoreSubject.value = recordedSubs.has(currentVal) ? currentVal : "all";
+    }
+
+    function renderScoresListOnly() {
+      if (!elements.studentScoresList) return;
+      const allScores = state.scores || [];
       const today = getTodayDateString();
-      const todayScores = state.scores.filter(s => s.date === today);
 
-      elements.tabScoresCountBadge.textContent = `${todayScores.length}`;
-      elements.scoresCountBadge.textContent = `${todayScores.length} 筆測驗`;
-      elements.statTestCount.textContent = `${todayScores.length} 筆`;
+      const rangeVal = elements.filterScoreRange ? elements.filterScoreRange.value : "today";
+      const subjectVal = elements.filterScoreSubject ? elements.filterScoreSubject.value : "all";
+      const correctionVal = elements.filterScoreCorrection ? elements.filterScoreCorrection.value : "all";
+      const sortVal = elements.sortScoreOrder ? elements.sortScoreOrder.value : "date-desc";
 
-      if (todayScores.length === 0) {
-        elements.scoresAvgDisplay.innerHTML = `均分：<span class="text-slate-400 font-extrabold">--</span>`;
-        elements.statTestAvg.textContent = `--`;
+      const now = new Date();
+      let minDateStr = "";
+      if (rangeVal === "today") {
+        minDateStr = today;
+      } else if (rangeVal === "7days") {
+        const d = new Date(now);
+        d.setDate(d.getDate() - 7);
+        minDateStr = d.toISOString().slice(0, 10);
+      } else if (rangeVal === "30days") {
+        const d = new Date(now);
+        d.setDate(d.getDate() - 30);
+        minDateStr = d.toISOString().slice(0, 10);
+      }
+
+      let filtered = allScores.filter(s => {
+        if (rangeVal === "today" && s.date !== today) return false;
+        if ((rangeVal === "7days" || rangeVal === "30days") && s.date < minDateStr) return false;
+        if (subjectVal !== "all" && s.subject !== subjectVal) return false;
+        if (correctionVal !== "all" && s.correction !== correctionVal) return false;
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (sortVal === "date-desc") {
+          return (b.date || "").localeCompare(a.date || "") || (b.id || "").localeCompare(a.id || "");
+        } else if (sortVal === "date-asc") {
+          return (a.date || "").localeCompare(b.date || "") || (a.id || "").localeCompare(b.id || "");
+        } else if (sortVal === "score-desc") {
+          return (parseFloat(b.score) || 0) - (parseFloat(a.score) || 0);
+        } else if (sortVal === "score-asc") {
+          return (parseFloat(a.score) || 0) - (parseFloat(b.score) || 0);
+        }
+        return 0;
+      });
+
+      if (filtered.length === 0) {
         elements.studentScoresList.innerHTML = `
           <div class="text-center py-10 text-slate-400 text-sm">
             <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-300 mx-auto flex items-center justify-center text-xl mb-2">
               <i class="fa-solid fa-pen-ruler"></i>
             </div>
-            今日尚未登記小考或作業成績<br>
-            <span class="text-xs text-slate-400 mt-1 inline-block">點擊上方「登記新成績」開始紀錄！</span>
+            查無符合條件的成績紀錄<br>
+            <span class="text-xs text-slate-400 mt-1 inline-block">可調整上方篩選條件，或點擊「登記新成績」！</span>
           </div>
         `;
         return;
       }
 
-      // Calculate Average
-      const total = todayScores.reduce((sum, s) => sum + (parseFloat(s.score) || 0), 0);
-      const avg = (total / todayScores.length).toFixed(1);
-      elements.scoresAvgDisplay.innerHTML = `今日平均：<span class="text-emerald-600 font-black text-sm">${avg} 分</span>`;
-      elements.statTestAvg.textContent = `${avg}分`;
-
-      elements.studentScoresList.innerHTML = todayScores.map(s => {
+      elements.studentScoresList.innerHTML = filtered.map(s => {
         const scoreVal = parseFloat(s.score) || 0;
         let scoreColor = "text-emerald-600 bg-emerald-50 border-emerald-200";
         if (scoreVal < 60) {
@@ -1548,11 +2034,11 @@
 
         let corBadge = "";
         if (s.correction === "全對免訂正") {
-          corBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800">✨ 全對</span>`;
+          corBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800">✨ 全對免訂正</span>`;
         } else if (s.correction === "已完成訂正") {
-          corBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-100 text-teal-800">✅ 已訂正</span>`;
+          corBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-100 text-teal-800">✅ 已完成訂正</span>`;
         } else {
-          corBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-100 text-rose-800">✏️ 待訂正</span>`;
+          corBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-100 text-rose-800">✏️ 待訂正/需請教</span>`;
         }
 
         return `
@@ -1562,15 +2048,18 @@
                 ${s.score}
               </div>
               <div class="min-w-0">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
                   <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-slate-200 text-slate-700">
                     ${escapeHtml(s.subject)}
                   </span>
                   <span class="font-bold text-slate-900 text-sm truncate">
                     ${escapeHtml(s.name)}
                   </span>
+                  <span class="text-[11px] text-slate-400 font-mono">
+                    ${escapeHtml(s.date || '')}
+                  </span>
                 </div>
-                <div class="flex items-center gap-2 mt-1">
+                <div class="flex items-center gap-2 mt-1 flex-wrap">
                   ${corBadge}
                   ${s.remark ? `<span class="text-xs text-slate-500 truncate"><i class="fa-regular fa-comment-dots text-slate-400 mr-1"></i>${escapeHtml(s.remark)}</span>` : ''}
                 </div>
@@ -1600,7 +2089,6 @@
         `;
       }).join('');
 
-      // Attach event listeners
       elements.studentScoresList.querySelectorAll('.btn-del-score').forEach(btn => {
         btn.addEventListener('click', () => {
           const id = btn.getAttribute('data-id');
@@ -1623,28 +2111,98 @@
       });
     }
 
+    function renderScoresSection() {
+      const allScores = state.scores || [];
+      const today = getTodayDateString();
+      const todayScores = allScores.filter(s => s.date === today);
+
+      elements.tabScoresCountBadge.textContent = `${todayScores.length}`;
+      if (elements.scoresCountBadge) {
+        elements.scoresCountBadge.textContent = `${allScores.length} 筆測驗`;
+      }
+      if (elements.statTotalTestsCount) {
+        elements.statTotalTestsCount.textContent = `${allScores.length}`;
+      }
+      if (elements.statTodayTestsSub) {
+        elements.statTodayTestsSub.textContent = `今日 ${todayScores.length} 筆`;
+      }
+
+      if (allScores.length === 0) {
+        if (elements.statOverallAvg) elements.statOverallAvg.textContent = '--';
+        if (elements.statOverallGrade) elements.statOverallGrade.textContent = '尚無紀錄';
+        if (elements.statHighestScore) elements.statHighestScore.textContent = '--';
+        if (elements.statHighestSubject) elements.statHighestSubject.textContent = '--';
+        if (elements.statCorrectionRate) elements.statCorrectionRate.textContent = '--%';
+        if (elements.statCorrectionSub) elements.statCorrectionSub.textContent = '0 筆待訂正';
+      } else {
+        const totalScore = allScores.reduce((sum, s) => sum + (parseFloat(s.score) || 0), 0);
+        const overallAvg = (totalScore / allScores.length).toFixed(1);
+        if (elements.statOverallAvg) elements.statOverallAvg.textContent = `${overallAvg}`;
+
+        let grade = "需加油";
+        if (overallAvg >= 90) grade = "優等 (A+)";
+        else if (overallAvg >= 80) grade = "甲等 (A)";
+        else if (overallAvg >= 70) grade = "乙等 (B)";
+        else if (overallAvg >= 60) grade = "丙等 (C)";
+        if (elements.statOverallGrade) elements.statOverallGrade.textContent = grade;
+
+        let highest = allScores[0];
+        allScores.forEach(s => {
+          if ((parseFloat(s.score) || 0) > (parseFloat(highest.score) || 0)) {
+            highest = s;
+          }
+        });
+        if (elements.statHighestScore) elements.statHighestScore.textContent = `${highest.score}分`;
+        if (elements.statHighestSubject) elements.statHighestSubject.textContent = `${highest.subject} (${highest.name || ''})`;
+
+        const completedCor = allScores.filter(s => s.correction === "全對免訂正" || s.correction === "已完成訂正").length;
+        const corRate = Math.round((completedCor / allScores.length) * 100);
+        const pendingCor = allScores.length - completedCor;
+        if (elements.statCorrectionRate) elements.statCorrectionRate.textContent = `${corRate}%`;
+        if (elements.statCorrectionSub) elements.statCorrectionSub.textContent = `${pendingCor} 筆待訂正`;
+      }
+
+      renderScoreTrendChart(allScores);
+      renderSubjectAnalytics(allScores);
+      populateSubjectFilterOptions(allScores);
+      renderScoresListOnly();
+    }
+
+    function updateSubjectButtons(selectedSub) {
+      if (!elements.subjectPickerGroup) return;
+      elements.subjectPickerGroup.querySelectorAll('.sub-btn').forEach(btn => {
+        const sub = btn.getAttribute('data-sub');
+        if (sub === selectedSub) {
+          btn.className = "sub-btn px-2.5 py-1.5 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 text-xs font-black shadow-xs transition-all cursor-pointer";
+        } else {
+          btn.className = "sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer";
+        }
+      });
+    }
+
     function openScoreModal(editItem = null) {
       if (editItem) {
         elements.scoreModalTitle.textContent = "編輯成績紀錄";
         elements.editScoreId.value = editItem.id;
-        elements.inputScoreSubject.value = editItem.subject || "";
+        elements.inputScoreSubject.value = editItem.subject || "國語文";
         elements.inputScoreName.value = editItem.name || "";
         elements.inputScoreVal.value = editItem.score || "";
         elements.inputScoreRemark.value = editItem.remark || "";
         selectedModalCorrection = editItem.correction || "全對免訂正";
+        updateSubjectButtons(editItem.subject || "國語文");
       } else {
         elements.scoreModalTitle.textContent = "登記新成績";
         elements.editScoreId.value = "";
-        elements.inputScoreSubject.value = "國語";
+        elements.inputScoreSubject.value = "國語文";
         elements.inputScoreName.value = "";
         elements.inputScoreVal.value = "";
         elements.inputScoreRemark.value = "";
         selectedModalCorrection = "全對免訂正";
+        updateSubjectButtons("國語文");
       }
 
       updateCorrectionButtons();
       elements.scoreModal.classList.remove("hidden");
-      elements.inputScoreName.focus();
     }
 
     function closeScoreModal() {
@@ -1888,12 +2446,42 @@
       elements.cancelScoreModalBtn.addEventListener("click", closeScoreModal);
       elements.saveScoreModalBtn.addEventListener("click", saveScoreFromModal);
 
-      // Subject preset buttons
+      // Subject preset buttons & input sync
       elements.subjectPickerGroup.querySelectorAll('.sub-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          elements.inputScoreSubject.value = btn.getAttribute('data-sub');
+          const sub = btn.getAttribute('data-sub');
+          elements.inputScoreSubject.value = sub;
+          updateSubjectButtons(sub);
         });
       });
+
+      elements.inputScoreSubject?.addEventListener('input', () => {
+        updateSubjectButtons(elements.inputScoreSubject.value.trim());
+      });
+
+      // Domain analytics filter
+      if (elements.domainAnalyticsFilter) {
+        elements.domainAnalyticsFilter.querySelectorAll('.domain-filter-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const domain = btn.getAttribute('data-domain');
+            activeDomainFilter = domain;
+            elements.domainAnalyticsFilter.querySelectorAll('.domain-filter-btn').forEach(b => {
+              if (b === btn) {
+                b.className = "domain-filter-btn px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-extrabold cursor-pointer";
+              } else {
+                b.className = "domain-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer";
+              }
+            });
+            renderSubjectAnalytics(state.scores || []);
+          });
+        });
+      }
+
+      // History filters & sort
+      elements.filterScoreRange?.addEventListener('change', renderScoresListOnly);
+      elements.filterScoreSubject?.addEventListener('change', renderScoresListOnly);
+      elements.filterScoreCorrection?.addEventListener('change', renderScoresListOnly);
+      elements.sortScoreOrder?.addEventListener('change', renderScoresListOnly);
 
       // Correction preset buttons
       elements.correctionPickerGroup.querySelectorAll('.cor-btn').forEach(btn => {
