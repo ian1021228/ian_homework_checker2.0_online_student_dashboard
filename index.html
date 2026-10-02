@@ -2631,14 +2631,16 @@
       return combined;
     }
 
-    // 取得待填寫小考 (教師已發布，但此學生尚未填寫分數)
+    // 取得待填寫小考 (教師已發布，但此學生尚未填寫分數；填寫完畢立即隱藏避免重複填寫)
     function getPendingExams() {
       if (!state.studentSeat) return [];
       const seatStr = String(state.studentSeat);
       const classExams = Array.isArray(state.classData?.exams) ? state.classData.exams : [];
       return classExams.filter(exam => {
         const sub = exam.submissions?.[seatStr];
-        return !sub || sub.score === undefined || sub.score === null || sub.score === '';
+        const hasSub = sub && sub.score !== undefined && sub.score !== null && sub.score !== '';
+        const inScores = (state.scores || []).some(s => (s.id === exam.id || s.examId === exam.id) && s.score !== undefined && s.score !== null && s.score !== '');
+        return !hasSub && !inScores;
       });
     }
 
@@ -3361,6 +3363,62 @@
       updateMultiSubjectBtnLabel();
       renderDetailedScoresList();
     }
+
+    function updateSubjectButtons(selectedSub) {
+      if (!elements.subjectPickerGroup) return;
+      elements.subjectPickerGroup.querySelectorAll('.sub-btn').forEach(btn => {
+        const sub = btn.getAttribute('data-sub');
+        if (sub === selectedSub) {
+          btn.className = "sub-btn px-2.5 py-1.5 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 text-xs font-black shadow-xs transition-all cursor-pointer";
+        } else {
+          btn.className = "sub-btn px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold hover:border-emerald-500 hover:bg-emerald-50 bg-white text-slate-700 transition-all cursor-pointer";
+        }
+      });
+    }
+
+    function updateCorrectionButtons() {
+      if (!elements.correctionPickerGroup) return;
+      elements.correctionPickerGroup.querySelectorAll('.cor-btn').forEach(btn => {
+        const cor = btn.getAttribute('data-cor');
+        if (cor === selectedModalCorrection) {
+          btn.className = "cor-btn p-2 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 text-xs font-black shadow-xs transition-all cursor-pointer";
+        } else {
+          btn.className = "cor-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 bg-white text-slate-700 transition-all cursor-pointer";
+        }
+      });
+    }
+
+    function openScoreModal(editItem = null) {
+      if (!elements.scoreModal) return;
+      if (editItem) {
+        if (elements.scoreModalTitle) elements.scoreModalTitle.textContent = "編輯成績紀錄";
+        if (elements.editScoreId) elements.editScoreId.value = editItem.id || "";
+        if (elements.inputScoreSubject) elements.inputScoreSubject.value = editItem.subject || "國語文";
+        if (elements.inputScoreName) elements.inputScoreName.value = editItem.name || "";
+        if (elements.inputScoreVal) elements.inputScoreVal.value = (editItem.score !== undefined && editItem.score !== null) ? editItem.score : "";
+        if (elements.inputScoreRemark) elements.inputScoreRemark.value = editItem.remark || "";
+        selectedModalCorrection = editItem.correction || "全對免訂正";
+        updateSubjectButtons(editItem.subject || "國語文");
+      } else {
+        if (elements.scoreModalTitle) elements.scoreModalTitle.textContent = "登記小考／作業成績";
+        if (elements.editScoreId) elements.editScoreId.value = "";
+        if (elements.inputScoreSubject) elements.inputScoreSubject.value = "國語文";
+        if (elements.inputScoreName) elements.inputScoreName.value = "";
+        if (elements.inputScoreVal) elements.inputScoreVal.value = "";
+        if (elements.inputScoreRemark) elements.inputScoreRemark.value = "";
+        selectedModalCorrection = "全對免訂正";
+        updateSubjectButtons("國語文");
+      }
+      updateCorrectionButtons();
+      elements.scoreModal.classList.remove("hidden");
+    }
+
+    function closeScoreModal() {
+      if (elements.scoreModal) {
+        elements.scoreModal.classList.add("hidden");
+      }
+    }
+
     function saveScoreFromModal() {
       const subject = elements.inputScoreSubject.value.trim() || "綜合";
       const name = elements.inputScoreName.value.trim();
@@ -3869,23 +3927,23 @@
       }
 
       // Score Modal Buttons
-      elements.btnOpenAddScore.addEventListener("click", () => {
+      elements.btnOpenAddScore?.addEventListener("click", () => {
         if (!checkStudentScoresAuth()) {
-          showToast("🔒 請先驗證 6 位數專屬密碼解鎖成績系統！", "warning");
+          showToast("🔒 請先驗證專屬 PIN 碼解鎖成績系統！", "warning");
           elements.inputStudentAuthPin?.focus();
           return;
         }
         openScoreModal(null);
       });
-      elements.closeScoreModalBtn.addEventListener("click", closeScoreModal);
-      elements.cancelScoreModalBtn.addEventListener("click", closeScoreModal);
-      elements.saveScoreModalBtn.addEventListener("click", saveScoreFromModal);
+      elements.closeScoreModalBtn?.addEventListener("click", closeScoreModal);
+      elements.cancelScoreModalBtn?.addEventListener("click", closeScoreModal);
+      elements.saveScoreModalBtn?.addEventListener("click", saveScoreFromModal);
 
       // Subject preset buttons & input sync
-      elements.subjectPickerGroup.querySelectorAll('.sub-btn').forEach(btn => {
+      elements.subjectPickerGroup?.querySelectorAll('.sub-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const sub = btn.getAttribute('data-sub');
-          elements.inputScoreSubject.value = sub;
+          if (elements.inputScoreSubject) elements.inputScoreSubject.value = sub;
           updateSubjectButtons(sub);
         });
       });
@@ -3970,7 +4028,7 @@
       elements.formEditMyScore?.addEventListener('submit', saveEditMyScore);
 
       // Correction preset buttons
-      elements.correctionPickerGroup.querySelectorAll('.cor-btn').forEach(btn => {
+      elements.correctionPickerGroup?.querySelectorAll('.cor-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           selectedModalCorrection = btn.getAttribute('data-cor');
           updateCorrectionButtons();
@@ -3978,14 +4036,28 @@
       });
 
       // Mood preset buttons
-      elements.moodPickerGroup.querySelectorAll('.mood-btn').forEach(btn => {
+      elements.moodPickerGroup?.querySelectorAll('.mood-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           selectedMood = btn.getAttribute('data-mood');
           renderMoodJournalSection();
         });
       });
 
-      elements.btnSaveMoodJournal.addEventListener("click", saveMoodJournal);
+      elements.btnSaveMoodJournal?.addEventListener("click", saveMoodJournal);
+
+      // Modal backdrop click bindings
+      elements.modalScoreBracketAnalysis?.addEventListener('click', (e) => {
+        if (e.target === elements.modalScoreBracketAnalysis) closeScoreBracketModal();
+      });
+      elements.scoreModal?.addEventListener('click', (e) => {
+        if (e.target === elements.scoreModal) closeScoreModal();
+      });
+      elements.modalEditMyScore?.addEventListener('click', (e) => {
+        if (e.target === elements.modalEditMyScore) closeEditMyScoreModal();
+      });
+      elements.modalMultiSubjectFilter?.addEventListener('click', (e) => {
+        if (e.target === elements.modalMultiSubjectFilter) elements.modalMultiSubjectFilter.classList.add('hidden');
+      });
     }
 
     function switchTab(tabName) {
