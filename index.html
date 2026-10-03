@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>作業點收系統 — 學生數位聯絡簿與成績登記端</title>
-  <meta name="description" content="作業點收系統學生端數位聯絡簿，讓學生自主填寫成績、檢核作業、記錄心情日記，全面取代實體聯絡簿">
-  <meta property="og:title" content="作業點收系統 — 學生數位聯絡簿與成績登記端">
-  <meta property="og:description" content="作業點收系統學生端數位聯絡簿，讓學生自主填寫成績、檢核作業、記錄心情日記，全面取代實體聯絡簿">
+  <title>班級經營系統 — 學生端</title>
+  <meta name="description" content="班級經營系統學生端數位聯絡簿與成績登記，讓學生自主填寫成績、檢核作業、記錄心情日記，全面取代實體聯絡簿">
+  <meta property="og:title" content="班級經營系統 — 學生端">
+  <meta property="og:description" content="班級經營系統學生端數位聯絡簿與成績登記，讓學生自主填寫成績、檢核作業、記錄心情日記，全面取代實體聯絡簿">
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/png" href="homework-checker-icon.png">
   <link rel="icon" type="image/svg+xml" href="homework-checker-icon.svg">
@@ -14,7 +14,7 @@
   <meta name="theme-color" content="#059669">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="學生聯絡簿">
+  <meta name="apple-mobile-web-app-title" content="班級經營系統學生端">
 
   <!-- Network Preconnect -->
   <link rel="preconnect" href="https://firestore.googleapis.com">
@@ -106,8 +106,8 @@
         <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-xl shadow-emerald-500/20 mb-5">
           <i class="fa-solid fa-graduation-cap text-3xl"></i>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">學生數位聯絡簿</h1>
-        <p class="mt-2 text-sm text-slate-500">輸入班級代碼，自主填寫成績與完成今日作業</p>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">班級經營系統 — 學生端</h1>
+        <p class="mt-2 text-sm text-slate-500">學生數位聯絡簿 · 自主填寫成績與完成今日作業</p>
       </div>
 
       <!-- Access Form Card -->
@@ -161,7 +161,7 @@
           <div>
             <a href="https://ian1021228.github.io/homework_checker3.0/" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors">
               <i class="fa-solid fa-chalkboard-user text-slate-400"></i>
-              <span>老師管理系統首頁</span>
+              <span>班級經營系統首頁（教師端）</span>
             </a>
           </div>
         </div>
@@ -169,7 +169,7 @@
 
       <!-- Footer Info -->
       <div class="mt-8 text-center text-xs text-slate-400 space-y-1">
-        <p>作業點收系統 — 學生數位聯絡簿端 v2.0</p>
+        <p>班級經營系統 — 學生端 v2.1</p>
         <p>Created by 王禹硯（<a href="mailto:ianw.solar@gmail.com" class="text-emerald-600 hover:underline">ianw.solar@gmail.com</a>）</p>
       </div>
     </div>
@@ -698,19 +698,17 @@
     <!-- Bottom Sticky Navigation Bar -->
     <footer class="mt-auto bg-white border-t border-slate-200/80 py-4 px-4 text-center">
       <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-        <div>
-          <span>作業點收系統 — 學生端 v2.1</span>
+        <div class="flex flex-wrap items-center justify-center gap-y-1">
+          <span>班級經營系統 — 學生端 v2.1</span>
           <span class="mx-2 text-slate-300">|</span>
-          <a href="https://docs.google.com/forms/d/19BPzX6vMrSnvW3j2s4OOvaiP3p1gS8auGbRt3f9aFkM/edit" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline font-bold">
-            <i class="fa-solid fa-comment-dots text-indigo-500 mr-1"></i>回報問題/提供建議
-          </a>
+          <a href="https://docs.google.com/forms/d/19BPzX6vMrSnvW3j2s4OOvaiP3p1gS8auGbRt3f9aFkM/edit" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline font-bold">回報問題/提供建議</a>
           <span class="mx-2 text-slate-300">|</span>
           <a href="https://ian1021228.github.io/ian_homework_checker2.0_online_parent_dashboard/" class="text-emerald-600 hover:underline font-bold">家長端</a>
           <span class="mx-2 text-slate-300">|</span>
           <a href="https://ian1021228.github.io/homework_checker3.0/" class="text-slate-600 hover:underline font-semibold">首頁</a>
         </div>
         <div class="font-medium text-slate-400">
-          Created by 王禹硯（<a href="mailto:ianw.solar@gmail.com" class="text-emerald-600 hover:underline">ianw.solar@gmail.com</a>）
+          <span class="hidden sm:inline-block mr-2 text-slate-300">｜</span>Created by 王禹硯（<a href="mailto:ianw.solar@gmail.com" class="text-emerald-600 hover:underline">ianw.solar@gmail.com</a>）
         </div>
       </div>
     </footer>
@@ -2386,8 +2384,8 @@
       }
 
       if (elements.trendStatusBadge) {
-        elements.trendStatusBadge.className = `px-2.5 py-1 rounded-full text-xs font-extrabold ${trendClass}`;
-        elements.trendStatusBadge.textContent = trendText;
+        elements.trendStatusBadge.className = `px-2.5 py-1 rounded-full text-xs font-extrabold ${trendClass} inline-flex items-center gap-1`;
+        elements.trendStatusBadge.innerHTML = trendText;
       }
 
       // Draw SVG Chart
@@ -3520,12 +3518,18 @@
         const dd = String(d.getDate()).padStart(2, '0');
         const dateStr = `${yyyy}-${mm}-${dd}`;
         
+        const dateEntries = contactBook[dateStr] || [];
+        const hasEntries = dateEntries.length > 0;
+        // 若已經全部打勾或無事項，綠色點點消失；若尚有未完成事項，才顯示點點
+        const hasUncompleted = hasEntries && dateEntries.some((_, idx) => !state.contactChecks?.[`${dateStr}_${idx}`]);
+        
         dates.push({
           dateStr: dateStr,
           dayOfWeek: getDayOfWeekName(d),
           shortDate: `${d.getMonth() + 1}/${d.getDate()}`,
           isToday: i === 0,
-          hasEntries: Boolean(contactBook[dateStr] && contactBook[dateStr].length > 0)
+          hasEntries: hasEntries,
+          hasUncompleted: hasUncompleted
         });
       }
 
@@ -3551,7 +3555,7 @@
             <span class="text-xs sm:text-sm font-extrabold mt-0.5">
               ${d.shortDate}
             </span>
-            ${d.hasEntries ? `
+            ${d.hasUncompleted ? `
               <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-emerald-200' : 'bg-emerald-500'} absolute top-2 right-2"></span>
             ` : ''}
           </button>
@@ -3589,15 +3593,15 @@
               const isChecked = Boolean(state.contactChecks?.[checkKey]);
 
               return `
-                <div class="flex items-start gap-2.5 py-2 px-3 rounded-xl border transition-all ${
+                <div class="flex items-center gap-2.5 py-1.5 px-3 rounded-xl border transition-all ${
                   isChecked
                     ? 'bg-emerald-50/60 border-emerald-300'
-                    : 'bg-slate-50/80 border-slate-200/60'
+                    : 'bg-white border-slate-200/80 shadow-2xs'
                 }">
                   <button
                     type="button"
                     data-check-key="${checkKey}"
-                    class="btn-contact-item-check checkbox-bounce w-[22px] h-[22px] rounded-md flex items-center justify-center transition-all border cursor-pointer flex-shrink-0 mt-0.5 ${
+                    class="btn-contact-item-check checkbox-bounce w-[20px] h-[20px] rounded-md flex items-center justify-center transition-all border cursor-pointer shrink-0 ${
                       isChecked
                         ? 'bg-emerald-600 border-emerald-600 text-white shadow-2xs'
                         : 'bg-white border-slate-300 text-transparent hover:border-emerald-400'
@@ -3606,8 +3610,8 @@
                   >
                     <i class="fa-solid fa-check text-[10px]"></i>
                   </button>
-                  <div class="text-sm font-bold leading-normal whitespace-pre-wrap flex-1 ${isChecked ? 'text-slate-600' : 'text-slate-800'}">
-                    ${escapeHtml(text)}
+                  <div class="text-sm font-bold leading-snug flex-1 break-words ${isChecked ? 'text-slate-500' : 'text-slate-800'}">
+                    ${escapeHtml(text.trim())}
                   </div>
                 </div>
               `;
