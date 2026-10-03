@@ -699,7 +699,7 @@
     <footer class="mt-auto bg-white border-t border-slate-200/80 py-4 px-4 text-center">
       <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
         <div>
-          <span>作業點收系統 — 學生端 v2.0</span>
+          <span>作業點收系統 — 學生端 v2.1</span>
           <span class="mx-2 text-slate-300">|</span>
           <a href="https://docs.google.com/forms/d/19BPzX6vMrSnvW3j2s4OOvaiP3p1gS8auGbRt3f9aFkM/edit" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline font-bold">
             <i class="fa-solid fa-comment-dots text-indigo-500 mr-1"></i>回報問題/提供建議
@@ -964,6 +964,13 @@
 
       <!-- Body -->
       <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
+        <!-- 回報錯誤 / 功能修正建議 按鈕 (置於設定最上方) -->
+        <a href="https://docs.google.com/forms/d/19BPzX6vMrSnvW3j2s4OOvaiP3p1gS8auGbRt3f9aFkM/edit" target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-black text-sm bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md shadow-orange-500/20 hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-center cursor-pointer">
+          <i class="fa-solid fa-bullhorn text-sm shrink-0"></i>
+          <span>回報錯誤 / 功能修正建議</span>
+          <i class="fa-solid fa-arrow-up-right-from-square text-xs opacity-90 shrink-0 ml-1"></i>
+        </a>
+
         <!-- Class Info -->
         <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
           <div class="flex items-center justify-between">
@@ -2263,7 +2270,7 @@
                   <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-slate-100 text-slate-600 flex-shrink-0">
                     ${escapeHtml(typeName)}
                   </span>
-                  <span class="text-sm sm:text-base font-bold text-slate-900 truncate ${isSelfChecked ? 'line-through text-slate-500' : ''}">
+                  <span class="text-sm sm:text-base font-bold text-slate-900 truncate ${isSelfChecked ? 'text-slate-500 font-semibold' : ''}">
                     ${escapeHtml(hw.name)}
                   </span>
                 </div>
@@ -3487,10 +3494,7 @@
       const todayEntries = contactBook[todayStr] || [];
       const unfinishedContact = todayEntries.filter((_, idx) => !state.contactChecks?.[`${todayStr}_${idx}`]).length;
 
-      const homeworks = state.classData?.homeworks || [];
-      const unfinishedHw = homeworks.filter(h => !state.selfChecks?.[h.id]).length;
-
-      const totalUnfinished = unfinishedContact + unfinishedHw;
+      const totalUnfinished = unfinishedContact;
 
       if (totalUnfinished > 0) {
         elements.contactUnfinishedBadge.textContent = String(totalUnfinished);
@@ -3567,11 +3571,9 @@
       elements.selectedDateLabel.textContent = `${activeDateStr} (${activeObj ? activeObj.dayOfWeek : ''})`;
 
       const entries = contactBook[activeDateStr] || [];
-      const homeworks = (activeDateStr === getTodayDateString()) ? (data.homeworks || []) : [];
+      elements.contactEntriesCount.textContent = `共 ${entries.length} 則`;
 
-      elements.contactEntriesCount.textContent = `共 ${entries.length + homeworks.length} 則`;
-
-      if (entries.length === 0 && homeworks.length === 0) {
+      if (entries.length === 0) {
         elements.contactBookContainer.innerHTML = `
           <div class="text-center py-8 text-slate-400 text-sm">
             <i class="fa-regular fa-calendar-xmark text-2xl mb-1.5 block text-slate-300"></i>
@@ -3579,95 +3581,39 @@
           </div>
         `;
       } else {
-        let itemsHtml = '';
+        const itemsHtml = `
+          <div class="space-y-1.5">
+            ${entries.map((entry, idx) => {
+              const text = typeof entry === 'string' ? entry : (entry.text || '');
+              const checkKey = `${activeDateStr}_${idx}`;
+              const isChecked = Boolean(state.contactChecks?.[checkKey]);
 
-        // 1. 若為今日，同時展示今日作業事項（支援直接打勾）
-        if (homeworks.length > 0) {
-          itemsHtml += `
-            <div class="mb-3">
-              <div class="text-xs font-extrabold text-slate-600 mb-2 flex items-center gap-1.5">
-                <i class="fa-solid fa-list-check text-emerald-600"></i>
-                <span>今日作業檢核（點擊打勾完成）</span>
-              </div>
-              <div class="space-y-2">
-                ${homeworks.map(hw => {
-                  const isChecked = Boolean(state.selfChecks?.[hw.id]);
-                  return `
-                    <div class="flex items-center gap-3 p-3 rounded-2xl border transition-all ${
+              return `
+                <div class="flex items-start gap-2.5 py-2 px-3 rounded-xl border transition-all ${
+                  isChecked
+                    ? 'bg-emerald-50/60 border-emerald-300'
+                    : 'bg-slate-50/80 border-slate-200/60'
+                }">
+                  <button
+                    type="button"
+                    data-check-key="${checkKey}"
+                    class="btn-contact-item-check checkbox-bounce w-[22px] h-[22px] rounded-md flex items-center justify-center transition-all border cursor-pointer flex-shrink-0 mt-0.5 ${
                       isChecked
-                        ? 'bg-emerald-50/70 border-emerald-200'
-                        : 'bg-white hover:bg-slate-50 border-slate-200/80'
-                    }">
-                      <button
-                        type="button"
-                        data-hw-id="${hw.id}"
-                        class="btn-cb-hw-check checkbox-bounce touch-target w-7 h-7 rounded-xl flex items-center justify-center transition-all border cursor-pointer flex-shrink-0 ${
-                          isChecked
-                            ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs'
-                            : 'bg-white border-slate-300 text-transparent hover:border-emerald-400'
-                        }"
-                        title="點擊打勾"
-                      >
-                        <i class="fa-solid fa-check text-xs"></i>
-                      </button>
-                      <div class="min-w-0 flex-1">
-                        <span class="text-sm font-bold text-slate-800 ${isChecked ? 'line-through text-slate-400' : ''}">
-                          ${escapeHtml(hw.name)}
-                        </span>
-                        <span class="text-[11px] text-slate-400 block mt-0.5">
-                          ${isChecked ? '<i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i>已完成' : '<i class="fa-solid fa-hourglass-half text-amber-500 mr-1"></i>待完成'}
-                        </span>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-          `;
-        }
-
-        // 2. 聯絡簿公告事項（支援點擊打勾）
-        if (entries.length > 0) {
-          itemsHtml += `
-            <div>
-              <div class="text-xs font-extrabold text-slate-600 mb-2 flex items-center gap-1.5">
-                <i class="fa-solid fa-bullhorn text-teal-600"></i>
-                <span>導師聯絡與交辦事項（點擊打勾完成）</span>
-              </div>
-              <div class="space-y-2">
-                ${entries.map((entry, idx) => {
-                  const text = typeof entry === 'string' ? entry : (entry.text || '');
-                  const checkKey = `${activeDateStr}_${idx}`;
-                  const isChecked = Boolean(state.contactChecks?.[checkKey]);
-
-                  return `
-                    <div class="flex items-start gap-3 p-3 rounded-2xl border transition-all ${
-                      isChecked
-                        ? 'bg-emerald-50/60 border-emerald-200'
-                        : 'bg-slate-50/80 border-slate-200/60'
-                    }">
-                      <button
-                        type="button"
-                        data-check-key="${checkKey}"
-                        class="btn-contact-item-check checkbox-bounce touch-target w-7 h-7 rounded-xl flex items-center justify-center transition-all border cursor-pointer flex-shrink-0 mt-0.5 ${
-                          isChecked
-                            ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs'
-                            : 'bg-white border-slate-300 text-transparent hover:border-emerald-400'
-                        }"
-                        title="標記此事項已完成"
-                      >
-                        <i class="fa-solid fa-check text-xs"></i>
-                      </button>
-                      <div class="text-sm font-bold text-slate-800 leading-relaxed whitespace-pre-wrap flex-1 ${isChecked ? 'line-through text-slate-400' : ''}">
-                        ${escapeHtml(text)}
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-          `;
-        }
+                        ? 'bg-emerald-600 border-emerald-600 text-white shadow-2xs'
+                        : 'bg-white border-slate-300 text-transparent hover:border-emerald-400'
+                    }"
+                    title="標記此事項已完成"
+                  >
+                    <i class="fa-solid fa-check text-[10px]"></i>
+                  </button>
+                  <div class="text-sm font-bold leading-normal whitespace-pre-wrap flex-1 ${isChecked ? 'text-slate-600' : 'text-slate-800'}">
+                    ${escapeHtml(text)}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
 
         elements.contactBookContainer.innerHTML = itemsHtml;
 
@@ -3682,21 +3628,6 @@
             updateContactUnfinishedBadge();
             if (state.contactChecks[key]) {
               showToast("已標記此聯絡事項完成！", "success");
-            }
-          });
-        });
-
-        // 綁定作業項目打勾事件
-        elements.contactBookContainer.querySelectorAll('.btn-cb-hw-check').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const hwId = btn.getAttribute('data-hw-id');
-            state.selfChecks[hwId] = !state.selfChecks[hwId];
-            saveLocalState();
-            renderHomeworkSection(data);
-            renderContactBookSection(data);
-            updateContactUnfinishedBadge();
-            if (state.selfChecks[hwId]) {
-              showToast("已標記此作業自主完成！", "success");
             }
           });
         });
