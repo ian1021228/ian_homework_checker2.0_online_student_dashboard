@@ -1325,6 +1325,7 @@
       selectedSubjectsFilter: [], // array of subjects, empty or length === 21 means all
       moodJournal: {} // { [date]: { mood, text } }
     };
+    window.state = state;
 
     // DOM Elements Cache
     const elements = {
@@ -1928,33 +1929,38 @@
       }
     }
 
-    async function syncScoresFromCloud() {
+    let unsubscribeStudentScores = null;
+
+    function syncScoresFromCloud() {
+      if (unsubscribeStudentScores) {
+        unsubscribeStudentScores();
+        unsubscribeStudentScores = null;
+      }
       if (!state.accessCode || !state.studentSeat) return;
       try {
         const studentDocId = `studentScores_${state.accessCode}_seat${state.studentSeat}`;
-        const url = `https://firestore.googleapis.com/v1/projects/cheker-barcode/databases/(default)/documents/artifacts/${APP_COLLECTION_ID}/public/data/userProfiles/${studentDocId}`;
-        const resp = await fetch(url);
-        if (resp.status === 200) {
-          const json = await resp.json();
-          const cloudData = parseRestDocument(json);
-          if (cloudData) {
-            if (Array.isArray(cloudData.scores)) {
-              const existingIds = new Set(state.scores.map(s => s.id));
-              cloudData.scores.forEach(cs => {
-                if (!existingIds.has(cs.id)) {
-                  state.scores.push(cs);
-                }
-              });
+        const profileDocRef = doc(db, 'artifacts', APP_COLLECTION_ID, 'public', 'data', 'userProfiles', studentDocId);
+        unsubscribeStudentScores = onSnapshot(profileDocRef, (snap) => {
+          if (snap.exists()) {
+            const cloudData = snap.data();
+            if (cloudData) {
+              if (Array.isArray(cloudData.scores)) {
+                state.scores = cloudData.scores;
+              }
+              if (cloudData.moodJournal) {
+                state.moodJournal = { ...state.moodJournal, ...cloudData.moodJournal };
+              }
+              saveLocalState();
+              renderScoresSection();
+              renderMoodJournalSection();
             }
-            if (cloudData.moodJournal) {
-              state.moodJournal = { ...cloudData.moodJournal, ...state.moodJournal };
-            }
-            saveLocalState();
-            renderScoresSection();
-            renderMoodJournalSection();
           }
-        }
-      } catch (e) {}
+        }, (err) => {
+          console.warn("Realtime scores sync warning:", err);
+        });
+      } catch (e) {
+        console.warn("syncScoresFromCloud setup error:", e);
+      }
     }
 
     function getTeacherConfiguredPin(seat) {
@@ -2170,6 +2176,7 @@
 
       if (state.classData) {
         renderStudentDashboard(state.classData);
+        syncScoresFromCloud();
       }
     }
 
@@ -2364,8 +2371,7 @@
           trendText = `<i class="fa-solid fa-fire text-amber-500 mr-1"></i> 持續進步中 (+${diff} 分)`;
           trendClass = "bg-emerald-50 text-emerald-700 border border-emerald-200";
         } else if (diff <= -3) {
-          trendText = `<i class="fa-solid fa-triangle-exclamation text-rose-500 mr-1"></i> 略微下滑 (${diff} 分) 需加強`;
-          trendClass = "bg-amber-50 text-amber-700 border border-amber-200";
+          trendText = null;
         } else {
           trendText = `<i class="fa-solid fa-bullseye text-indigo-500 mr-1"></i> 穩定持平 (波動 ${diff >= 0 ? '+' : ''}${diff} 分)`;
           trendClass = "bg-indigo-50 text-indigo-700 border border-indigo-200";
@@ -2378,14 +2384,18 @@
           trendText = `<i class="fa-solid fa-arrow-trend-up text-emerald-500 mr-1"></i> 較前次進步 (+${diff} 分)`;
           trendClass = "bg-emerald-50 text-emerald-700 border border-emerald-200";
         } else if (diff < 0) {
-          trendText = `<i class="fa-solid fa-arrow-trend-down text-rose-500 mr-1"></i> 較前次退步 (${diff} 分)`;
-          trendClass = "bg-amber-50 text-amber-700 border border-amber-200";
+          trendText = null;
         }
       }
 
       if (elements.trendStatusBadge) {
-        elements.trendStatusBadge.className = `px-2.5 py-1 rounded-full text-xs font-extrabold ${trendClass} inline-flex items-center gap-1`;
-        elements.trendStatusBadge.innerHTML = trendText;
+        if (trendText) {
+          elements.trendStatusBadge.className = `px-2.5 py-1 rounded-full text-xs font-extrabold ${trendClass} inline-flex items-center gap-1`;
+          elements.trendStatusBadge.innerHTML = trendText;
+          elements.trendStatusBadge.classList.remove('hidden');
+        } else {
+          elements.trendStatusBadge.classList.add('hidden');
+        }
       }
 
       // Draw SVG Chart
@@ -2551,9 +2561,10 @@
           const sub = card.getAttribute('data-sub');
           if (elements.filterScoreSubject) {
             elements.filterScoreSubject.value = sub;
-            renderScoresListOnly();
+            renderDetailedScoresList();
             showToast(`已為您篩選【${sub}】測驗成績`, "info");
-            elements.filterScoreSubject.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            const targetEl = document.getElementById('scores-history-section') || elements.filterScoreSubject;
+            targetEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
         });
       });
@@ -3499,9 +3510,8 @@
         elements.contactUnfinishedBadge.className = "px-2 py-0.5 text-[10px] font-black rounded-full bg-rose-500 text-white animate-pulse";
         elements.contactUnfinishedBadge.classList.remove('hidden');
       } else {
-        elements.contactUnfinishedBadge.textContent = "0";
-        elements.contactUnfinishedBadge.className = "px-2 py-0.5 text-[10px] font-black rounded-full bg-emerald-100 text-emerald-800";
-        elements.contactUnfinishedBadge.classList.remove('hidden');
+        elements.contactUnfinishedBadge.textContent = "";
+        elements.contactUnfinishedBadge.classList.add('hidden');
       }
     }
 
