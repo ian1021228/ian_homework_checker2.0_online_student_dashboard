@@ -375,7 +375,7 @@
                 依班級安全隱私規範，<b>必須等到教師在後台完成 PIN 碼設定開通後</b>，方可使用成績系統。
               </p>
               <div class="p-3 bg-amber-50 rounded-2xl border border-amber-100 text-xs text-amber-800 font-bold inline-block">
-                💡 請提醒班級導師在教師端【管理班級】點選【成績 PIN 碼】一鍵開通！
+                <i class="fa-solid fa-lightbulb text-amber-500 mr-1.5"></i>請提醒班級導師在教師端【成績系統】點選【PIN 碼設定】完成開通！
               </div>
             </div>
           </div>
@@ -450,7 +450,7 @@
               </button>
             </div>
 
-            <!-- 📝 區塊一：【待填寫分數】 (Pending Exam Scores) -->
+            <!-- 區塊一：【待填寫分數】 (Pending Exam Scores) -->
             <div id="pending-scores-section" class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm space-y-4">
               <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div class="flex items-center gap-2">
@@ -584,9 +584,9 @@
                 <!-- Correction Filter -->
                 <select id="filter-score-correction" class="py-1.5 px-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-emerald-500">
                   <option value="all">全部訂正狀態</option>
-                  <option value="全對免訂正">✨ 全對免訂正</option>
-                  <option value="已完成訂正">✅ 已完成訂正</option>
-                  <option value="待訂正/需請教">✏️ 待訂正/需請教</option>
+                  <option value="全對免訂正">全對免訂正</option>
+                  <option value="已完成訂正">已完成訂正</option>
+                  <option value="待訂正/需請教">待訂正/需請教</option>
                 </select>
 
                 <!-- Sort Order -->
@@ -653,20 +653,20 @@
             <div>
               <label class="block text-xs font-bold text-slate-500 mb-2">今天的心情狀態：</label>
               <div id="mood-picker-group" class="grid grid-cols-5 gap-2 max-w-md">
-                <button type="button" data-mood="😄 充實愉快" class="mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-center hover:bg-emerald-50 hover:border-emerald-300 transition-all cursor-pointer text-xs font-bold">
-                  <span class="text-xl block mb-1">😄</span>充實
+                <button type="button" data-mood="雀躍" class="mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-center hover:bg-amber-50 hover:border-amber-300 transition-all cursor-pointer text-xs font-bold bg-white">
+                  <i class="fa-solid fa-face-laugh-squint text-2xl text-amber-500 block mb-1"></i>雀躍
                 </button>
-                <button type="button" data-mood="🎉 開心收穫" class="mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-center hover:bg-emerald-50 hover:border-emerald-300 transition-all cursor-pointer text-xs font-bold">
-                  <span class="text-xl block mb-1">🎉</span>開心
+                <button type="button" data-mood="開心" class="mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-center hover:bg-emerald-50 hover:border-emerald-300 transition-all cursor-pointer text-xs font-bold bg-white">
+                  <i class="fa-solid fa-face-smile text-2xl text-emerald-500 block mb-1"></i>開心
                 </button>
-                <button type="button" data-mood="🤔 努力思考" class="mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-center hover:bg-emerald-50 hover:border-emerald-300 transition-all cursor-pointer text-xs font-bold">
-                  <span class="text-xl block mb-1">🤔</span>思考
+                <button type="button" data-mood="普通" class="mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-center hover:bg-sky-50 hover:border-sky-300 transition-all cursor-pointer text-xs font-bold bg-white">
+                  <i class="fa-solid fa-face-meh text-2xl text-sky-500 block mb-1"></i>普通
                 </button>
-                <button type="button" data-mood="😴 有點疲憊" class="mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-center hover:bg-emerald-50 hover:border-emerald-300 transition-all cursor-pointer text-xs font-bold">
-                  <span class="text-xl block mb-1">😴</span>疲憊
+                <button type="button" data-mood="難過" class="mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-center hover:bg-indigo-50 hover:border-indigo-300 transition-all cursor-pointer text-xs font-bold bg-white">
+                  <i class="fa-solid fa-face-frown text-2xl text-indigo-500 block mb-1"></i>難過
                 </button>
-                <button type="button" data-mood="💪 衝勁十足" class="mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-center hover:bg-emerald-50 hover:border-emerald-300 transition-all cursor-pointer text-xs font-bold">
-                  <span class="text-xl block mb-1">💪</span>奮鬥
+                <button type="button" data-mood="悲傷" class="mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-center hover:bg-rose-50 hover:border-rose-300 transition-all cursor-pointer text-xs font-bold bg-white">
+                  <i class="fa-solid fa-face-sad-tear text-2xl text-rose-500 block mb-1"></i>悲傷
                 </button>
               </div>
             </div>
@@ -916,9 +916,9 @@
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">訂正狀況</label>
           <div class="grid grid-cols-3 gap-2" id="correction-picker-group">
-            <button type="button" data-cor="全對免訂正" class="cor-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 transition-all cursor-pointer">✨ 全對免訂正</button>
-            <button type="button" data-cor="已完成訂正" class="cor-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 transition-all cursor-pointer">✅ 已完成訂正</button>
-            <button type="button" data-cor="待訂正/需請教" class="cor-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 transition-all cursor-pointer">✏️ 待訂正/需請教</button>
+            <button type="button" data-cor="全對免訂正" class="cor-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 transition-all cursor-pointer flex items-center justify-center gap-1.5"><i class="fa-solid fa-star text-amber-500"></i><span>全對免訂正</span></button>
+            <button type="button" data-cor="已完成訂正" class="cor-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 transition-all cursor-pointer flex items-center justify-center gap-1.5"><i class="fa-solid fa-circle-check text-emerald-500"></i><span>已完成訂正</span></button>
+            <button type="button" data-cor="待訂正/需請教" class="cor-btn p-2 rounded-xl border border-slate-200 text-xs font-extrabold hover:border-emerald-500 transition-all cursor-pointer flex items-center justify-center gap-1.5"><i class="fa-solid fa-pen text-rose-500"></i><span>待訂正/需請教</span></button>
           </div>
         </div>
 
@@ -1052,7 +1052,7 @@
     </div>
   </div>
 
-  <!-- 📊 全班 6 大分數區段分析彈窗 (Score Bracket Analysis Modal) -->
+  <!-- 全班 6 大分數區段分析彈窗 (Score Bracket Analysis Modal) -->
   <div id="modal-score-bracket-analysis" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-all duration-300">
     <div class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-4 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -1115,7 +1115,7 @@
     </div>
   </div>
 
-  <!-- ✏️ 學生編輯成績彈窗 (Student Edit My Score Modal) -->
+  <!-- 學生編輯成績彈窗 (Student Edit My Score Modal) -->
   <div id="modal-edit-my-score" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-all duration-300">
     <div class="relative w-full max-w-sm bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -1144,9 +1144,9 @@
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">訂正情形</label>
           <select id="edit-my-score-correction" class="w-full py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold focus:bg-white">
-            <option value="全對免訂正">✨ 全對免訂正</option>
-            <option value="已完成訂正">✅ 已完成訂正</option>
-            <option value="待訂正/需請教">✏️ 待訂正/需請教</option>
+            <option value="全對免訂正">全對免訂正</option>
+            <option value="已完成訂正">已完成訂正</option>
+            <option value="待訂正/需請教">待訂正/需請教</option>
           </select>
         </div>
 
@@ -1171,7 +1171,7 @@
     </div>
   </div>
 
-  <!-- 📚 科目複選篩選彈窗 (Multi-Select Subjects Filter Modal) -->
+  <!-- 科目複選篩選彈窗 (Multi-Select Subjects Filter Modal) -->
   <div id="modal-multi-subject-filter" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-all duration-300">
     <div class="relative w-full max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-4 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -1215,7 +1215,7 @@
     </div>
   </div>
 
-  <!-- ❓ 網頁內客製化確認彈窗 (In-App Confirm Modal - 不使用瀏覽器預設 confirm) -->
+  <!-- 網頁內客製化確認彈窗 (In-App Confirm Modal - 不使用瀏覽器預設 confirm) -->
   <div id="inapp-confirm-modal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-all duration-300">
     <div class="relative w-full max-w-sm bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 text-center space-y-4">
       <div class="w-14 h-14 rounded-3xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl mx-auto border border-amber-100 shadow-xs" id="confirm-modal-icon-container">
@@ -1236,7 +1236,7 @@
     </div>
   </div>
 
-  <!-- 📱 iOS PWA 安裝指引彈窗 (In-App iOS Installation Guide Modal) -->
+  <!-- iOS PWA 安裝指引彈窗 (In-App iOS Installation Guide Modal) -->
   <div id="modal-ios-pwa-guide" class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-all duration-300">
     <div class="relative w-full max-w-sm bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -1501,7 +1501,7 @@
 
     // Selected state for modals
     let selectedModalCorrection = "全對免訂正";
-    let selectedMood = "😄 充實愉快";
+    let selectedMood = "開心";
 
     // ==========================================
     // UTILITY FUNCTIONS
@@ -2267,8 +2267,8 @@
                     ${escapeHtml(hw.name)}
                   </span>
                 </div>
-                <div class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2">
-                  <span>${isSelfChecked ? '✨ 我已完成此作業' : '⏳ 待完成'}</span>
+                <div class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5">
+                  <span>${isSelfChecked ? '<i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i>我已完成此作業' : '<i class="fa-solid fa-hourglass-half text-amber-500 mr-1"></i>待完成'}</span>
                 </div>
               </div>
             </div>
@@ -2344,7 +2344,7 @@
 
       // Trend analysis
       const n = chronological.length;
-      let trendText = "🎯 穩定發揮中";
+      let trendText = '<i class="fa-solid fa-bullseye text-indigo-500 mr-1"></i> 穩定發揮中';
       let trendClass = "bg-indigo-50 text-indigo-700 border border-indigo-200";
 
       const recentCount = Math.min(3, Math.floor(n / 2) || 1);
@@ -2356,13 +2356,13 @@
         const avgPrior = priorSlice.reduce((s, x) => s + parseFloat(x.score), 0) / priorSlice.length;
         const diff = Math.round((avgRecent - avgPrior) * 10) / 10;
         if (diff >= 3) {
-          trendText = `🔥 持續進步中 (+${diff} 分)`;
+          trendText = `<i class="fa-solid fa-fire text-amber-500 mr-1"></i> 持續進步中 (+${diff} 分)`;
           trendClass = "bg-emerald-50 text-emerald-700 border border-emerald-200";
         } else if (diff <= -3) {
-          trendText = `⚠️ 略微下滑 (${diff} 分) 需加強`;
+          trendText = `<i class="fa-solid fa-triangle-exclamation text-rose-500 mr-1"></i> 略微下滑 (${diff} 分) 需加強`;
           trendClass = "bg-amber-50 text-amber-700 border border-amber-200";
         } else {
-          trendText = `🎯 穩定持平 (波動 ${diff >= 0 ? '+' : ''}${diff} 分)`;
+          trendText = `<i class="fa-solid fa-bullseye text-indigo-500 mr-1"></i> 穩定持平 (波動 ${diff >= 0 ? '+' : ''}${diff} 分)`;
           trendClass = "bg-indigo-50 text-indigo-700 border border-indigo-200";
         }
       } else {
@@ -2370,10 +2370,10 @@
         const firstScore = parseFloat(chronological[0].score);
         const diff = Math.round(lastScore - firstScore);
         if (diff > 0) {
-          trendText = `📈 較前次進步 (+${diff} 分)`;
+          trendText = `<i class="fa-solid fa-arrow-trend-up text-emerald-500 mr-1"></i> 較前次進步 (+${diff} 分)`;
           trendClass = "bg-emerald-50 text-emerald-700 border border-emerald-200";
         } else if (diff < 0) {
-          trendText = `📉 較前次退步 (${diff} 分)`;
+          trendText = `<i class="fa-solid fa-arrow-trend-down text-rose-500 mr-1"></i> 較前次退步 (${diff} 分)`;
           trendClass = "bg-amber-50 text-amber-700 border border-amber-200";
         }
       }
@@ -2688,18 +2688,21 @@
                 <span class="text-sm sm:text-base font-black text-slate-900">
                   ${escapeHtml(exam.name)}
                 </span>
-                <span class="text-xs font-bold text-slate-500 font-mono">
-                  📅 ${escapeHtml(exam.date || '今日')}
+                <span class="text-xs font-bold text-slate-500 font-mono flex items-center gap-1">
+                  <i class="fa-solid fa-calendar-days text-slate-400"></i>
+                  <span>${escapeHtml(exam.date || '今日')}</span>
                 </span>
               </div>
               <div class="flex items-center gap-2">
                 ${isMissing ? `
-                  <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
-                    ⚠️ 缺考（填寫後自動標註補考）
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-100 text-rose-800 border border-rose-300 animate-pulse flex items-center gap-1">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
+                    <span>缺考（填寫後自動標註補考）</span>
                   </span>
                 ` : `
-                  <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
-                    ⏳ 待登記成績
+                  <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 flex items-center gap-1">
+                    <i class="fa-solid fa-hourglass-half text-amber-600"></i>
+                    <span>待登記成績</span>
                   </span>
                 `}
               </div>
@@ -2720,9 +2723,9 @@
 
               <div class="w-full sm:w-36 flex-shrink-0">
                 <select class="select-pending-correction w-full py-2 px-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-amber-500">
-                  <option value="全對免訂正">✨ 全對免訂正</option>
-                  <option value="已完成訂正" selected>✅ 已完成訂正</option>
-                  <option value="待訂正/需請教">✏️ 待訂正/需請教</option>
+                  <option value="全對免訂正">全對免訂正</option>
+                  <option value="已完成訂正" selected>已完成訂正</option>
+                  <option value="待訂正/需請教">待訂正/需請教</option>
                 </select>
               </div>
 
@@ -2839,7 +2842,7 @@
       }
 
       await syncScoresToCloud();
-      showToast("🎉 成績填寫成功！已自動移至下方【測驗紀錄詳細明細】。", "success");
+      showToast("成績填寫成功！已自動移至下方【測驗紀錄詳細明細】。", "success");
     }
 
     // 渲染【測驗紀錄詳細明細】清單
@@ -2932,11 +2935,11 @@
 
         let corBadge = "";
         if (s.correction === "全對免訂正") {
-          corBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800">✨ 全對免訂正</span>`;
+          corBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1"><i class="fa-solid fa-star text-emerald-600"></i> 全對免訂正</span>`;
         } else if (s.correction === "已完成訂正") {
-          corBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-100 text-teal-800">✅ 已完成訂正</span>`;
+          corBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-100 text-teal-800 flex items-center gap-1"><i class="fa-solid fa-circle-check text-teal-600"></i> 已完成訂正</span>`;
         } else {
-          corBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-100 text-rose-800">✏️ 待訂正/需請教</span>`;
+          corBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-100 text-rose-800 flex items-center gap-1"><i class="fa-solid fa-pen text-rose-600"></i> 待訂正/需請教</span>`;
         }
 
         const isMakeupBadge = s.isMakeup
@@ -2975,8 +2978,9 @@
                   <span class="font-extrabold text-slate-900 text-sm sm:text-base truncate">
                     ${escapeHtml(s.name)}
                   </span>
-                  <span class="text-[11px] text-slate-400 font-mono">
-                    📅 ${escapeHtml(s.date || '')}
+                  <span class="text-[11px] text-slate-400 font-mono flex items-center gap-1">
+                    <i class="fa-solid fa-calendar-days text-slate-400"></i>
+                    <span>${escapeHtml(s.date || '')}</span>
                   </span>
                   ${isMakeupBadge}
                 </div>
@@ -3094,7 +3098,7 @@
               <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full ${seg.color}"></span>
                 <span class="${isMyBracket ? 'text-teal-900 font-black' : 'text-slate-700'}">${seg.label}</span>
-                ${isMyBracket ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-teal-600 text-white">👈 您的落點</span>` : ''}
+                ${isMyBracket ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-teal-600 text-white flex items-center gap-1"><i class="fa-solid fa-hand-point-left"></i> 本人</span>` : ''}
               </div>
               <span class="font-mono ${isMyBracket ? 'text-teal-800 font-black' : 'text-slate-600'}">
                 ${seg.count} 人 (${pct}%)
@@ -3219,7 +3223,7 @@
       await syncScoresToCloud();
 
       closeEditMyScoreModal();
-      showToast("✅ 成績修改成功！已更新最後修改時間與原分數紀錄。", "success");
+      showToast("成績修改成功！已更新最後修改時間與原分數紀錄。", "success");
     }
 
     // 初始化【科目複選】彈窗內容
@@ -3611,7 +3615,7 @@
                           ${escapeHtml(hw.name)}
                         </span>
                         <span class="text-[11px] text-slate-400 block mt-0.5">
-                          ${isChecked ? '✨ 已完成' : '⏳ 待完成'}
+                          ${isChecked ? '<i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i>已完成' : '<i class="fa-solid fa-hourglass-half text-amber-500 mr-1"></i>待完成'}
                         </span>
                       </div>
                     </div>
@@ -3701,29 +3705,46 @@
       updateContactUnfinishedBadge();
     }
 
-    function renderMoodJournalSection() {
+    function normalizeMood(m) {
+      if (!m) return "開心";
+      if (m.includes("雀躍") || m.includes("開心收穫") || m.includes("衝勁十足")) return "雀躍";
+      if (m.includes("開心") || m.includes("充實愉快")) return "開心";
+      if (m.includes("普通") || m.includes("努力思考")) return "普通";
+      if (m.includes("難過") || m.includes("有點疲憊")) return "難過";
+      if (m.includes("悲傷")) return "悲傷";
+      return m;
+    }
+
+    function renderMoodJournalSection(fromUserSelection = false) {
       const activeDate = state.selectedContactDate || getTodayDateString();
-      const currentMood = state.moodJournal[activeDate] || { mood: "😄 充實愉快", text: "" };
-      selectedMood = currentMood.mood;
+      const currentMood = state.moodJournal[activeDate] || { mood: "開心", text: "" };
+      if (!fromUserSelection) {
+        selectedMood = normalizeMood(currentMood.mood);
+      } else {
+        selectedMood = normalizeMood(selectedMood);
+      }
 
       // Update buttons
       elements.moodPickerGroup.querySelectorAll('.mood-btn').forEach(btn => {
         const val = btn.getAttribute('data-mood');
         if (val === selectedMood) {
-          btn.className = "mood-btn touch-target p-2.5 rounded-2xl border-2 border-emerald-600 bg-emerald-50 text-emerald-800 text-center transition-all cursor-pointer text-xs font-black shadow-xs";
+          btn.className = "mood-btn touch-target p-2.5 rounded-2xl border-2 border-teal-600 bg-teal-50 text-teal-900 text-center transition-all cursor-pointer text-xs font-black shadow-sm ring-2 ring-teal-500/20";
         } else {
           btn.className = "mood-btn touch-target p-2.5 rounded-2xl border border-slate-200 text-slate-700 text-center hover:bg-slate-50 transition-all cursor-pointer text-xs font-bold bg-white";
         }
       });
 
-      elements.moodJournalTextarea.value = currentMood.text || "";
+      if (!fromUserSelection) {
+        elements.moodJournalTextarea.value = currentMood.text || "";
+      }
     }
 
     function saveMoodJournal() {
       const activeDate = state.selectedContactDate || getTodayDateString();
       const text = elements.moodJournalTextarea.value.trim();
+      state.moodJournal = state.moodJournal || {};
       state.moodJournal[activeDate] = {
-        mood: selectedMood,
+        mood: selectedMood || "開心",
         text: text
       };
       saveLocalState();
@@ -3815,7 +3836,7 @@
             elements.pwaInstallBadge.classList.remove("hidden");
           }
           if (elements.pwaInstallBtnText) {
-            elements.pwaInstallBtnText.textContent = "✅ 已安裝為桌面 App（可離線使用）";
+            elements.pwaInstallBtnText.textContent = "已安裝為桌面 App（可離線使用）";
           }
         }
       }
@@ -3832,7 +3853,7 @@
       window.addEventListener('appinstalled', () => {
         deferredInstallPrompt = null;
         updatePwaInstallState();
-        showToast("🎉 恭喜！學生數位聯絡簿已成功安裝至您的桌面/主畫面", "success");
+        showToast("恭喜！學生數位聯絡簿已成功安裝至您的桌面/主畫面", "success");
       });
 
       const isIos = () => {
@@ -3852,14 +3873,14 @@
             deferredInstallPrompt.prompt();
             const { outcome } = await deferredInstallPrompt.userChoice;
             if (outcome === 'accepted') {
-              showToast("🎉 感謝安裝！已將學生數位聯絡簿新增至主畫面", "success");
+              showToast("感謝安裝！已將學生數位聯絡簿新增至主畫面", "success");
             }
             deferredInstallPrompt = null;
           } else if (isIos()) {
             elements.modalIosPwaGuide?.classList.remove("hidden");
           } else {
             showInAppConfirm({
-              title: "📱 安裝為桌面應用程式 (PWA)",
+              title: "安裝為桌面應用程式 (PWA)",
               message: "若瀏覽器未自動彈出安裝視窗，請點選瀏覽器網址列右側的「安裝」圖示，或至瀏覽器右上角選單點選「安裝學生數位聯絡簿」/「加到主畫面」即可完成！",
               confirmText: "我知道了",
               onConfirm: () => {}
@@ -3897,11 +3918,11 @@
             elements.studentScoresLockedView.classList.add('hidden');
             elements.studentScoresUnlockedView.classList.remove('hidden');
 
-            showToast("🎉 驗證成功！此裝置已完成安全綁定，日後免密直開。", "success");
+            showToast("驗證成功！此裝置已完成安全綁定，日後免密直開。", "success");
             renderScoresSection();
           } else {
             elements.studentPinErrorBox.classList.remove('hidden');
-            elements.studentPinErrorMsg.textContent = "PIN 碼不正確！預設為【班級代碼 + 座號】。若有疑問請向導師確認。";
+            elements.studentPinErrorMsg.textContent = "PIN 碼不正確！若忘記請聯繫導師重設。";
             elements.inputStudentAuthPin.focus();
           }
         });
@@ -3929,7 +3950,7 @@
       // Score Modal Buttons
       elements.btnOpenAddScore?.addEventListener("click", () => {
         if (!checkStudentScoresAuth()) {
-          showToast("🔒 請先驗證專屬 PIN 碼解鎖成績系統！", "warning");
+          showToast("請先驗證專屬 PIN 碼解鎖成績系統！", "warning");
           elements.inputStudentAuthPin?.focus();
           return;
         }
@@ -4039,7 +4060,7 @@
       elements.moodPickerGroup?.querySelectorAll('.mood-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           selectedMood = btn.getAttribute('data-mood');
-          renderMoodJournalSection();
+          renderMoodJournalSection(true);
         });
       });
 
