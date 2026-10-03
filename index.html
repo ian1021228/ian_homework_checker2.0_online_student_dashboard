@@ -107,7 +107,7 @@
           <i class="fa-solid fa-graduation-cap text-3xl"></i>
         </div>
         <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">班級經營系統 — 學生端</h1>
-        <p class="mt-2 text-sm text-slate-500">學生數位聯絡簿 · 自主填寫成績與完成今日作業</p>
+        <p class="mt-2 text-sm text-slate-500">學生數位聯絡簿 · 自主檢核與完成今日作業</p>
       </div>
 
       <!-- Access Form Card -->
@@ -243,7 +243,7 @@
         </div>
         <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">請先選擇您的座號</h3>
         <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-md mx-auto">
-          選擇座號後即可自動載入您的今日作業檢核表、登記小考成績與填寫生活札記。
+          選擇座號後即可自動載入您的今日作業檢核表與填寫生活札記。
         </p>
 
         <!-- Quick Seat Picker -->
@@ -277,7 +277,7 @@
                 座號 <span id="student-seat-display">--</span> 號同學，你好！
               </h2>
               <p class="text-emerald-100 text-xs sm:text-sm mt-1">
-                自主管理今日作業與小考成績，邁向自律優秀的每一天！
+                自主管理今日作業與聯絡簿札記，邁向自律優秀的每一天！
               </p>
             </div>
 
@@ -287,11 +287,11 @@
                 <div class="text-xs text-emerald-100 font-semibold">作業完成</div>
                 <div class="text-xl sm:text-2xl font-black mt-0.5" id="stat-hw-progress">0%</div>
               </div>
-              <div class="bg-white/15 backdrop-blur-md rounded-2xl px-4 py-3 text-center border border-white/20 min-w-[90px]">
+              <div id="stat-test-count-card" class="bg-white/15 backdrop-blur-md rounded-2xl px-4 py-3 text-center border border-white/20 min-w-[90px] hidden">
                 <div class="text-xs text-emerald-100 font-semibold">今日測驗</div>
                 <div class="text-xl sm:text-2xl font-black mt-0.5" id="stat-test-count">0 筆</div>
               </div>
-              <div class="bg-white/15 backdrop-blur-md rounded-2xl px-4 py-3 text-center border border-white/20 min-w-[90px]">
+              <div id="stat-test-avg-card" class="bg-white/15 backdrop-blur-md rounded-2xl px-4 py-3 text-center border border-white/20 min-w-[90px] hidden">
                 <div class="text-xs text-emerald-100 font-semibold">今日均分</div>
                 <div class="text-xl sm:text-2xl font-black mt-0.5" id="stat-test-avg">--</div>
               </div>
@@ -306,7 +306,7 @@
             <span>今日作業檢核</span>
             <span id="tab-hw-count-badge" class="px-2 py-0.5 text-[10px] rounded-full bg-emerald-100 text-emerald-800">0</span>
           </button>
-          <button id="tab-scores-btn" class="flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2 cursor-pointer">
+          <button id="tab-scores-btn" class="flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all text-slate-600 hover:text-slate-900 hidden items-center justify-center gap-2 cursor-pointer">
             <i class="fa-solid fa-award"></i>
             <span>小考與成績填寫</span>
             <span id="tab-scores-count-badge" class="px-2 py-0.5 text-[10px] rounded-full bg-slate-200 text-slate-700">0</span>
@@ -1299,6 +1299,13 @@
     const db = getFirestore(app);
     const APP_COLLECTION_ID = "homework-checker-pro";
 
+    // ==========================================
+    // 【模組功能開關】小考成績系統開關
+    // 隱藏任何關於成績系統的功能，確保日後能復原。
+    // 若日後需復原，將此開關改為 true，並移除相應 hidden class 即可 100% 完整復原！
+    // ==========================================
+    const ENABLE_SCORES_FEATURE = false;
+
     // Local Storage Keys
     const LS_ACCESS_CODE_KEY = "student_access_code";
     const LS_CLASS_CACHE_PREFIX = "student_class_cache_";
@@ -1643,6 +1650,13 @@
       }
 
       setupEventListeners();
+
+      if (!ENABLE_SCORES_FEATURE) {
+        document.getElementById("stat-test-count-card")?.classList.add("hidden");
+        document.getElementById("stat-test-avg-card")?.classList.add("hidden");
+        elements.tabScoresBtn?.classList.add("hidden");
+        elements.panelScores?.classList.add("hidden");
+      }
     }
 
     function loadLocalState() {
@@ -4027,6 +4041,9 @@
     }
 
     function switchTab(tabName) {
+      if (tabName === "scores" && !ENABLE_SCORES_FEATURE) {
+        tabName = "hw";
+      }
       state.activeTab = tabName;
       const tabs = [
         { name: "hw", btn: elements.tabHwBtn, panel: elements.panelHomework },
@@ -4035,6 +4052,11 @@
       ];
 
       tabs.forEach(t => {
+        if (t.name === "scores" && !ENABLE_SCORES_FEATURE) {
+          t.panel?.classList.add("hidden");
+          t.btn?.classList.add("hidden");
+          return;
+        }
         if (t.name === tabName) {
           t.panel.classList.remove("hidden");
           t.btn.className = "flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all bg-white text-emerald-700 shadow-sm flex items-center justify-center gap-2 cursor-pointer";
