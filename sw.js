@@ -1,7 +1,7 @@
 // ==========================================
 // PWA Service Worker - 學生數位聯絡簿與成績登記端
 // ==========================================
-const CACHE_NAME = 'student-dashboard-v4.1.0';
+const CACHE_NAME = 'student-dashboard-v4.2.0-classic';
 
 const PRECACHE_ASSETS = [
   './',
